@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yield Exchange • Compliance-Aware Signup Wizard</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #0f162d;
+      --muted: #8b97b4;
+      --text: #e9eefc;
+      --accent: #4f7cff; /* Yield Exchange vibe */
+      --accent-2: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1000px 800px at 85% -10%, #1a2650 0%, var(--bg) 60%);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; margin-bottom: 22px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), #6aa2ff); box-shadow: var(--shadow); }
+    .title { font-size: 1.25rem; font-weight: 700; letter-spacing: .3px; }
+    .subtitle { color: var(--muted); font-size: .95rem; }
+
+    .shell {
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* Breadcrumbs */
+    .breadcrumbs {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 0; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .crumb {
+      position: relative;
+      padding: 14px 18px 14px 48px;
+      background: rgba(255,255,255,.02);
+      color: var(--muted);
+      font-weight: 600; font-size: .9rem; letter-spacing: .2px;
+    }
+    .crumb.active { color: var(--text); background: rgba(79,124,255,.12); }
+    .crumb::before {
+      content: attr(data-step);
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      width: 24px; height: 24px; display: grid; place-items: center;
+      border-radius: 999px; background: rgba(255,255,255,.08); color: var(--text);
+      font-size: .75rem; font-weight: 700;
+    }
+
+    /* Panels */
+    .panel { padding: 24px; display: none; }
+    .panel.active { display: block; animation: fade .28s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: none;} }
+
+    .grid {
+      display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr);
+    }
+    .col-6 { grid-column: span 6; }
+    .col-12 { grid-column: span 12; }
+    @media (max-width: 800px) { .col-6 { grid-column: span 12; } }
+
+    .card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: calc(var(--radius) - 6px);
+      padding: 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    label { display:block; font-size:.9rem; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"], input[type="email"], input[type="tel"], select, textarea {
+      width: 100%; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(12,18,40,.6); color: var(--text);
+      outline: none; transition: border .15s ease, box-shadow .15s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,124,255,.2); }
+
+    .muted { color: var(--muted); font-size: .9rem; }
+    .hint { color: #b9c7ff; font-size: .85rem; }
+
+    .controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; }
+    .btn {
+      padding: 12px 16px; border: 1px solid transparent; border-radius: 12px; cursor: pointer; font-weight: 700;
+      background: var(--accent); color: white; box-shadow: var(--shadow);
+    }
+    .btn.secondary { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.1); color: var(--text); }
+    .btn.ghost { background: transparent; border-color: rgba(255,255,255,.2); color: var(--text); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .inline { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+    .chip { padding:6px 10px; border-radius:999px; background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1); font-size:.8rem; }
+
+    .radio-card { display:flex; gap:12px; align-items:flex-start; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); cursor:pointer; }
+    .radio-card:hover { border-color: rgba(79,124,255,.6); }
+
+    .status {
+      display:flex; align-items:center; gap:8px; font-size:.9rem; margin-top:8px; color: var(--muted);
+    }
+    .status.ok { color: var(--accent-2); }
+    .status.warn { color: var(--warning); }
+
+    .summary {
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.25);
+    }
+    .error { color: var(--danger); font-weight: 600; margin-top: 8px; display:none; }
+
+    .footnote { margin-top: 8px; font-size: .8rem; color: var(--muted); }
+    .divider { height:1px; background: rgba(255,255,255,.06); margin: 12px 0; }
+
+    .tooltip { border-bottom:1px dashed rgba(255,255,255,.5); cursor: help; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">Yield Exchange — Compliance‑Aware Signup</div>
+          <div class="subtitle">Friction‑light onboarding with smart branching (Canada / U.S. / Other)</div>
+        </div>
+      </div>
+      <div class="inline">
+        <span class="chip">SOC 2 Type II ready</span>
+        <span class="chip">OWASP‑guided</span>
+        <span class="chip">Audit‑friendly</span>
+      </div>
+    </div>
+
+    <div class="shell" role="region" aria-label="Signup Wizard">
+      <!-- Breadcrumbs -->
+      <div class="breadcrumbs" id="breadcrumbs">
+        <div class="crumb active" data-step="1">Account Basics</div>
+        <div class="crumb" data-step="2">Jurisdiction</div>
+        <div class="crumb" data-step="3">Compliance Forms</div>
+        <div class="crumb" data-step="4">eDelivery Access</div>
+        <div class="crumb" data-step="5">Review & Consent</div>
+      </div>
+
+      <!-- Panels -->
+      <form id="wizard" novalidate>
+        <!-- STEP 1: Basics -->
+        <section class="panel active" data-panel="1">
+          <div class="grid">
+            <div class="col-12">
+              <div class="card">
+                <h2 style="margin:0 0 8px 0;">Account Basics</h2>
+                <p class="muted" style="margin:0">Tell us about your organization and key contact. We’ll set up eDelivery later.</p>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="card">
+                <label for="entityName">Legal Entity Name</label>
+                <input id="entityName" name="entityName" type="text" required placeholder="e.g., Northern Trust of Canada Limited" />
+                <div class="error" data-error-for="entityName">Please enter your legal entity name.</div>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="card">
+                <label for="tradeName">Trade / Operating Name (optional)</label>
+                <input id="tradeName" name="tradeName" type="text" placeholder="If different from legal entity" />
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="card">
+                <label for="contactName">Primary Contact</label>
+                <input id="contactName" name="contactName" type="text" required placeholder="First & Last name" />
+                <div class="error" data-error-for="contactName">Please enter a contact name.</div>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="card">
+                <label for="email">Work Email</label>
+                <input id="email" name="email" type="email" required placeholder="name@organization.com" />
+                <div class="error" data-error-for="email">Enter a valid email address.</div>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="card">
+                <label for="phone">Telephone</label>
+                <input id="phone" name="phone" type="tel" placeholder="+1 416 555 0123" />
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="card">
+                <label for="language">Language Preference</label>
+                <select id="language" name="language">
+                  <option value="en">English</option>
+                  <option value="fr">French</option>
+                </select>
+                <p class="footnote">Language preference will be applied to eDelivery notifications.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button type="button" class="btn secondary" disabled>Back</button>
+            <div class="inline">
+              <span class="muted">Step 1 of 5</span>
+              <button type="button" class="btn" data-next>Continue</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 2: Jurisdiction -->
+        <section class="panel" data-panel="2">
+          <div class="grid">
+            <div class="col-12">
+              <div class="card">
+                <h2 style="margin:0 0 8px 0;">Jurisdiction of Domicile / Tax Residency</h2>
+                <p class="muted" style="margin:0">We branch your compliance forms based on where your entity is a tax resident.</p>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="grid">
+                <label class="col-12 muted">Select one:</label>
+                <div class="col-12 card radio-card" data-radio="jurisdiction" data-value="CA">
+                  <input type="radio" id="jCA" name="jurisdiction" value="CA" style="margin-top:4px" />
+                  <div>
+                    <strong>Canada</strong>
+                    <div class="muted">You’ll complete the <span class="tooltip" title="Common Reporting Standard (CRS) by OECD & FATCA alignment">CRS/FATCA</span> self‑certification and may provide CRA number(s).</div>
+                    <div class="status ok">✓ Streamlined for Canadian entities</div>
+                  </div>
+                </div>
+
+                <div class="col-12 card radio-card" data-radio="jurisdiction" data-value="US">
+                  <input type="radio" id="jUS" name="jurisdiction" value="US" style="margin-top:4px" />
+                  <div>
+                    <strong>United States</strong>
+                    <div class="muted">You’ll complete IRS <strong>Form W‑9</strong> (SSN/EIN, federal tax classification, FATCA codes if applicable).</div>
+                    <div class="status ok">✓ W‑9 replaces CRS for U.S. persons</div>
+                  </div>
+                </div>
+
+                <div class="col-12 card radio-card" data-radio="jurisdiction" data-value="OTHER">
+                  <input type="radio" id="jOther" name="jurisdiction" value="OTHER" style="margin-top:4px" />
+                  <div>
+                    <strong>Other Countries</strong>
+                    <div class="muted">You’ll complete the <strong>CRS/FATCA</strong> entity self‑certification (TINs for each tax residence; controlling persons if Passive NFE).</div>
+                    <div class="status warn">! May require additional details for reportable jurisdictions</div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="error" data-error-for="jurisdiction">Please select a jurisdiction to continue.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button type="button" class="btn secondary" data-back>Back</button>
+            <div class="inline">
+              <span class="muted">Step 2 of 5</span>
+              <button type="button" class="btn" data-next>Continue</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 3: Compliance Forms (Dynamic Branch) -->
+        <section class="panel" data-panel="3">
+          <div class="grid">
+            <div class="col-12">
+              <div class="card">
+                <h2 style="margin:0 0 8px 0;">Compliance Forms</h2>
+                <p class="muted" style="margin:0" id="formsIntro">Complete the required forms based on your jurisdiction.</p>
+              </div>
+            </div>
+
+            <!-- W-9 (U.S.) -->
+            <div class="col-12 card" id="formW9" hidden>
+              <h3 style="margin-top:0">IRS Form W‑9 — Request for Taxpayer Identification Number & Certification</h3>
+              <div class="grid">
+                <div class="col-6">
+                  <label for="w9_name">Name (as shown on tax return)</label>
+                  <input id="w9_name" type="text" />
+                </div>
+                <div class="col-6">
+                  <label for="w9_class">Federal tax classification</label>
+                  <select id="w9_class">
+                    <option value="">Select…</option>
+                    <option>Individual/sole proprietor</option>
+                    <option>C corporation</option>
+                    <option>S corporation</option>
+                    <option>Partnership</option>
+                    <option>Trust/estate</option>
+                    <option>LLC (C)</option>
+                    <option>LLC (S)</option>
+                    <option>LLC (P)</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label for="w9_tin">TIN (SSN or EIN)</label>
+                  <input id="w9_tin" type="text" placeholder="###-##-#### or ##-#######" />
+                </div>
+                <div class="col-6">
+                  <label for="w9_address">Address</label>
+                  <input id="w9_address" type="text" placeholder="Number, street, and apt/suite" />
+                </div>
+              </div>
+              <div class="divider"></div>
+              <label class="inline" style="gap:8px"><input type="checkbox" id="w9_cert" /> <span>I certify that the TIN is correct and I am not subject to backup withholding.</span></label>
+              <div class="error" data-error-for="w9">Please complete required W‑9 fields and certification.</div>
+            </div>
+
+            <!-- CRS/FATCA (Canada or Other) -->
+            <div class="col-12 card" id="formCRS" hidden>
+              <h3 style="margin-top:0">CRS / FATCA — Entity Self‑Certification</h3>
+              <div class="grid">
+                <div class="col-6">
+                  <label for="crs_entity">Legal name of the entity</label>
+                  <input id="crs_entity" type="text" />
+                </div>
+                <div class="col-6">
+                  <label for="crs_incorp">Jurisdiction of incorporation / organization</label>
+                  <input id="crs_incorp" type="text" />
+                </div>
+                <div class="col-6">
+                  <label for="crs_taxres1">Jurisdiction of tax residence (1)</label>
+                  <input id="crs_taxres1" type="text" placeholder="e.g., Canada" />
+                </div>
+                <div class="col-6">
+                  <label for="crs_tin1">TIN / Business Number (for jurisdiction 1)</label>
+                  <input id="crs_tin1" type="text" placeholder="e.g., 123456789 RC0001" />
+                </div>
+                <div class="col-12">
+                  <label for="crs_type">Entity classification</label>
+                  <select id="crs_type">
+                    <option value="">Select…</option>
+                    <option>Financial Institution (GIIN available)</option>
+                    <option>Financial Institution (no GIIN)</option>
+                    <option>Active NFE</option>
+                    <option>Passive NFE</option>
+                    <option>Government/Central Bank/International Org</option>
+                    <option>Publicly Traded / Related Entity</option>
+                  </select>
+                </div>
+                <div class="col-12" id="crs_controlling_wrapper" hidden>
+                  <div class="card" style="background: rgba(255,255,255,.03)">
+                    <strong>Controlling Persons (Passive NFE)</strong>
+                    <p class="muted">List controlling persons (owners, trustees, beneficiaries, etc.) and their jurisdictions/TINs.</p>
+                    <div class="grid" id="cpList">
+                      <div class="col-6">
+                        <label>Full name</label>
+                        <input type="text" data-cp="name" />
+                      </div>
+                      <div class="col-6">
+                        <label>Jurisdiction(s) of tax residence</label>
+                        <input type="text" data-cp="res" placeholder="e.g., UK; Germany" />
+                      </div>
+                      <div class="col-6">
+                        <label>TIN(s)</label>
+                        <input type="text" data-cp="tin" placeholder="If none, provide reason" />
+                      </div>
+                      <div class="col-6">
+                        <label>Type</label>
+                        <select data-cp="type">
+                          <option>Direct owner</option>
+                          <option>Indirect owner</option>
+                          <option>Director / Senior official</option>
+                          <option>Trust: Settlor</option>
+                          <option>Trust: Trustee</option>
+                          <option>Trust: Protector</option>
+                          <option>Trust: Beneficiary</option>
+                          <option>Other controlling person</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="inline" style="margin-top:10px">
+                      <button type="button" class="btn ghost" id="addCP">+ Add controlling person</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <label class="inline" style="gap:8px"><input type="checkbox" id="crs_cert" /> <span>I certify the information is correct and I will update within 30 days of any change.</span></label>
+              <div class="error" data-error-for="crs">Please complete required CRS/FATCA fields and certification.</div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button type="button" class="btn secondary" data-back>Back</button>
+            <div class="inline">
+              <span class="muted">Step 3 of 5</span>
+              <button type="button" class="btn" data-next>Continue</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 4: eDelivery Access -->
+        <section class="panel" data-panel="4">
+          <div class="grid">
+            <div class="col-12">
+              <div class="card">
+                <h2 style="margin:0 0 8px 0;">eDelivery Portal Access</h2>
+                <p class="muted" style="margin:0">Add authorized users to receive electronic confirmations and statements.</p>
+              </div>
+            </div>
+
+            <div class="col-12 card">
+              <div class="grid" id="users">
+                <div class="col-3">
+                  <label>First name</label>
+                  <input type="text" data-user="first" />
+                </div>
+                <div class="col-3">
+                  <label>Last name</label>
+                  <input type="text" data-user="last" />
+                </div>
+                <div class="col-3">
+                  <label>Email</label>
+                  <input type="email" data-user="email" />
+                </div>
+                <div class="col-3">
+                  <label>Telephone</label>
+                  <input type="tel" data-user="tel" />
+                </div>
+              </div>
+              <div class="inline" style="margin-top:10px">
+                <button type="button" class="btn ghost" id="addUser">+ Add another user</button>
+              </div>
+              <p class="footnote">One user per email is permitted. Notifications respect the chosen language preference.</p>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button type="button" class="btn secondary" data-back>Back</button>
+            <div class="inline">
+              <span class="muted">Step 4 of 5</span>
+              <button type="button" class="btn" data-next>Continue</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 5: Review & Consent -->
+        <section class="panel" data-panel="5">
+          <div class="grid">
+            <div class="col-12">
+              <div class="card summary">
+                <h2 style="margin:0 0 8px 0;">Review & Consent</h2>
+                <p class="muted" style="margin:0">Please verify your details, agree to eDelivery terms, and submit.</p>
+              </div>
+            </div>
+
+            <div class="col-12 card" id="review"></div>
+
+            <div class="col-12 card">
+              <label class="inline" style="gap:8px"><input type="checkbox" id="edeliveryConsent" /> <span>I agree to electronic delivery of documents via the eDelivery Portal and understand I can revoke consent later.</span></label>
+              <div class="error" data-error-for="consent">You must consent to electronic delivery to proceed.</div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button type="button" class="btn secondary" data-back>Back</button>
+            <div class="inline">
+              <span class="muted">Step 5 of 5</span>
+              <button type="submit" class="btn">Submit Application</button>
+            </div>
+          </div>
+        </section>
+      </form>
+    </div>
+
+    <p class="footnote">Demo only — replace with API calls to your microservices (Auth, Organizations, Compliance) and persist step state. Includes basic front‑end validation and branching.</p>
+  </div>
+
+  <script>
+    // Simple state store
+    const state = {
+      step: 1,
+      basics: {},
+      jurisdiction: null,
+      forms: { w9: {}, crs: {} },
+      users: []
+    };
+
+    const panels = [...document.querySelectorAll('.panel')];
+    const crumbs = [...document.querySelectorAll('.crumb')];
+
+    function go(step) {
+      state.step = step;
+      panels.forEach(p => p.classList.toggle('active', +p.dataset.panel === step));
+      crumbs.forEach((c, i) => c.classList.toggle('active', i < step));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (step === 5) renderReview();
+    }
+
+    function next() { if (validateCurrent()) go(state.step + 1); }
+    function back() { go(Math.max(1, state.step - 1)); }
+
+    // Validation per step
+    function validateCurrent() {
+      const step = state.step;
+      let ok = true;
+
+      // reset visible errors
+      document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
+
+      if (step === 1) {
+        const entityName = document.getElementById('entityName');
+        const contactName = document.getElementById('contactName');
+        const email = document.getElementById('email');
+        if (!entityName.value.trim()) { showError('entityName'); ok = false; }
+        if (!contactName.value.trim()) { showError('contactName'); ok = false; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) { showError('email'); ok = false; }
+        if (ok) state.basics = {
+          entityName: entityName.value.trim(),
+          tradeName: document.getElementById('tradeName').value.trim(),
+          contactName: contactName.value.trim(),
+          email: email.value.trim(),
+          phone: document.getElementById('phone').value.trim(),
+          language: document.getElementById('language').value
+        };
+      }
+
+      if (step === 2) {
+        const j = document.querySelector('input[name="jurisdiction"]:checked');
+        if (!j) { showError('jurisdiction'); ok = false; }
+        if (ok) {
+          state.jurisdiction = j.value; toggleForms(j.value);
+        }
+      }
+
+      if (step === 3) {
+        if (state.jurisdiction === 'US') {
+          const name = document.getElementById('w9_name');
+          const klass = document.getElementById('w9_class');
+          const tin = document.getElementById('w9_tin');
+          const cert = document.getElementById('w9_cert');
+          if (!name.value.trim() || !klass.value || !tin.value.trim() || !cert.checked) { showError('w9'); ok = false; }
+          if (ok) state.forms.w9 = { name: name.value.trim(), class: klass.value, tin: tin.value.trim(), address: document.getElementById('w9_address').value.trim(), cert: true };
+        } else {
+          const ent = document.getElementById('crs_entity');
+          const inc = document.getElementById('crs_incorp');
+          const res1 = document.getElementById('crs_taxres1');
+          const tin1 = document.getElementById('crs_tin1');
+          const type = document.getElementById('crs_type');
+          const cert = document.getElementById('crs_cert');
+          if (!ent.value.trim() || !inc.value.trim() || !res1.value.trim() || !type.value || !cert.checked) { showError('crs'); ok = false; }
+          // If Passive NFE ensure at least one controlling person entry is filled
+          let cps = [];
+          if (type.value.includes('Passive NFE')) {
+            cps = collectControllingPersons();
+            if (cps.length === 0) { showError('crs'); ok = false; }
+          }
+          if (ok) state.forms.crs = {
+            entity: ent.value.trim(), incorp: inc.value.trim(), taxRes1: res1.value.trim(), tin1: tin1.value.trim(), type: type.value, cps, cert: true
+          };
+        }
+      }
+
+      if (step === 4) {
+        state.users = collectUsers();
+        if (state.users.length === 0) {
+          alert('Add at least one eDelivery user (First, Last, Email).');
+          ok = false;
+        }
+      }
+
+      if (step === 5) {
+        if (!document.getElementById('edeliveryConsent').checked) { showError('consent'); ok = false; }
+      }
+
+      return ok;
+    }
+
+    function showError(key) {
+      const el = document.querySelector(`[data-error-for="${key}"]`);
+      if (el) el.style.display = 'block';
+    }
+
+    function toggleForms(j) {
+      const w9 = document.getElementById('formW9');
+      const crs = document.getElementById('formCRS');
+      if (j === 'US') {
+        w9.hidden = false; crs.hidden = true;
+        document.getElementById('formsIntro').textContent = 'U.S. selected — Please complete IRS Form W‑9.';
+      } else {
+        w9.hidden = true; crs.hidden = false;
+        document.getElementById('formsIntro').textContent = 'CRS/FATCA required — Complete the entity self‑certification.';
+      }
+    }
+
+    function collectUsers() {
+      const rows = document.querySelectorAll('#users [data-user="first"]');
+      const users = [];
+      rows.forEach((_, idx) => {
+        const first = document.querySelectorAll('[data-user="first"]')[idx].value.trim();
+        const last  = document.querySelectorAll('[data-user="last"]')[idx].value.trim();
+        const email = document.querySelectorAll('[data-user="email"]')[idx].value.trim();
+        const tel   = document.querySelectorAll('[data-user="tel"]')[idx].value.trim();
+        if (first && last && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          users.push({ first, last, email, tel });
+        }
+      });
+      return users;
+    }
+
+    function collectControllingPersons() {
+      const names = document.querySelectorAll('#cpList [data-cp="name"]');
+      const cps = [];
+      names.forEach((_, idx) => {
+        const name = document.querySelectorAll('[data-cp="name"]')[idx].value.trim();
+        const res  = document.querySelectorAll('[data-cp="res"]')[idx].value.trim();
+        const tin  = document.querySelectorAll('[data-cp="tin"]')[idx].value.trim();
+        const type = document.querySelectorAll('[data-cp="type"]')[idx].value;
+        if (name && res) cps.push({ name, res, tin, type });
+      });
+      return cps;
+    }
+
+    function renderReview() {
+      const wrap = document.getElementById('review');
+      const j = state.jurisdiction === 'CA' ? 'Canada' : state.jurisdiction === 'US' ? 'United States' : 'Other Countries';
+      const list = [
+        ['Legal Entity', state.basics.entityName],
+        ['Trade Name', state.basics.tradeName || '—'],
+        ['Primary Contact', state.basics.contactName],
+        ['Email', state.basics.email],
+        ['Telephone', state.basics.phone || '—'],
+        ['Language', state.basics.language === 'fr' ? 'French' : 'English'],
+        ['Jurisdiction', j],
+      ];
+
+      let html = '<h3 style="margin-top:0">Summary</h3><div class="grid">';
+      list.forEach(([k,v]) => {
+        html += `<div class="col-6"><div class="card"><div class="muted">${k}</div><div style="font-weight:700; margin-top:4px">${v}</div></div></div>`
+      });
+      html += '</div>';
+
+      if (state.jurisdiction === 'US') {
+        const w9 = state.forms.w9 || {};
+        html += `<div class="divider"></div><div class="card"><strong>W‑9</strong><div class="grid"><div class="col-6"><div class="muted">Name</div><div>${w9.name || '—'}</div></div><div class="col-6"><div class="muted">Classification</div><div>${w9.class || '—'}</div></div><div class="col-6"><div class="muted">TIN</div><div>${w9.tin || '—'}</div></div><div class="col-6"><div class="muted">Address</div><div>${w9.address || '—'}</div></div></div></div>`;
+      } else {
+        const c = state.forms.crs || {};
+        html += `<div class="divider"></div><div class="card"><strong>CRS/FATCA</strong><div class="grid"><div class="col-6"><div class="muted">Entity</div><div>${c.entity || '—'}</div></div><div class="col-6"><div class="muted">Incorporation</div><div>${c.incorp || '—'}</div></div><div class="col-6"><div class="muted">Tax Residence</div><div>${c.taxRes1 || '—'}</div></div><div class="col-6"><div class="muted">TIN</div><div>${c.tin1 || '—'}</div></div><div class="col-6"><div class="muted">Entity Type</div><div>${c.type || '—'}</div></div></div>`;
+        if (c.cps && c.cps.length) {
+          html += '<div class="divider"></div><div class="muted">Controlling Persons</div><div class="grid">';
+          c.cps.forEach(cp => {
+            html += `<div class="col-6"><div class="card"><div><strong>${cp.name}</strong></div><div class="muted">${cp.type}</div><div class="footnote">${cp.res} • TIN: ${cp.tin || '—'}</div></div></div>`;
+          });
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      if (state.users && state.users.length) {
+        html += '<div class="divider"></div><div class="card"><strong>eDelivery Users</strong><div class="grid">';
+        state.users.forEach(u => {
+          html += `<div class="col-6"><div class="card"><div><strong>${u.first} ${u.last}</strong></div><div class="muted">${u.email}</div><div class="footnote">${u.tel || ''}</div></div></div>`;
+        });
+        html += '</div></div>';
+      }
+
+      wrap.innerHTML = html;
+    }
+
+    // Wire up nav buttons
+    document.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', next));
+    document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', back));
+
+    // Clickable radio-cards
+    document.querySelectorAll('[data-radio="jurisdiction"]').forEach(card => {
+      card.addEventListener('click', () => {
+        const val = card.getAttribute('data-value');
+        document.querySelectorAll('input[name="jurisdiction"]').forEach(r => r.checked = (r.value === val));
+      });
+    });
+
+    // Dynamic CRS controlling persons
+    const addCPBtn = document.getElementById('addCP');
+    if (addCPBtn) addCPBtn.addEventListener('click', () => {
+      const wrap = document.getElementById('cpList');
+      const tpl = document.createElement('template');
+      tpl.innerHTML = `
+        <div class="col-6"><label>Full name</label><input type="text" data-cp="name" /></div>
+        <div class="col-6"><label>Jurisdiction(s) of tax residence</label><input type="text" data-cp="res" placeholder="e.g., UK; Germany" /></div>
+        <div class="col-6"><label>TIN(s)</label><input type="text" data-cp="tin" placeholder="If none, provide reason" /></div>
+        <div class="col-6"><label>Type</label><select data-cp="type"><option>Direct owner</option><option>Indirect owner</option><option>Director / Senior official</option><option>Trust: Settlor</option><option>Trust: Trustee</option><option>Trust: Protector</option><option>Trust: Beneficiary</option><option>Other controlling person</option></select></div>
+      `;
+      wrap.appendChild(tpl.content);
+    });
+
+    // Show/hide controlling persons if Passive NFE
+    const crsType = document.getElementById('crs_type');
+    if (crsType) crsType.addEventListener('change', () => {
+      document.getElementById('crs_controlling_wrapper').hidden = !crsType.value.includes('Passive NFE');
+    });
+
+    // Add eDelivery users
+    document.getElementById('addUser').addEventListener('click', () => {
+      const wrap = document.getElementById('users');
+      const row = document.createElement('template');
+      row.innerHTML = `
+        <div class="col-3"><label>First name</label><input type="text" data-user="first" /></div>
+        <div class="col-3"><label>Last name</label><input type="text" data-user="last" /></div>
+        <div class="col-3"><label>Email</label><input type="email" data-user="email" /></div>
+        <div class="col-3"><label>Telephone</label><input type="tel" data-user="tel" /></div>
+      `;
+      wrap.appendChild(row.content);
+    });
+
+    // Form submit (demo only)
+    document.getElementById('wizard').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!validateCurrent()) return;
+      const payload = { ...state };
+      console.log('Submit payload', payload);
+      alert('Submitted! (Check console for payload)');
+    });
+  </script>
+</body>
+</html>
