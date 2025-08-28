@@ -8,15 +8,15 @@ export default function Home() {
         <div className="brand">
           <div className="logo" aria-hidden="true"></div>
           <div>
-            <div className="title">BMO Yield Exchange — Comprehensive Signup</div>
+            <div className="title">Yield Exchange — Comprehensive Signup</div>
             <div className="subtitle">Complete onboarding process with all required compliance documents</div>
           </div>
         </div>
-        <div className="inline">
+        {/* <div className="inline">
           <span className="chip">SOC 2 Type II compliant</span>
           <span className="chip">OWASP‑guided</span>
           <span className="chip">Audit‑friendly</span>
-        </div>
+        </div> */}
       </div>
       
       <SignupWizard />
