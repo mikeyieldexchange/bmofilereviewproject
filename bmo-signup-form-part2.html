@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BMO Yield Exchange • Comprehensive Signup Wizard</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #0f162d;
+      --muted: #8b97b4;
+      --text: #e9eefc;
+      --accent: #0079c1; /* BMO Blue */
+      --accent-2: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1000px 800px at 85% -10%, #1a2650 0%, var(--bg) 60%);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; margin-bottom: 22px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), #6aa2ff); box-shadow: var(--shadow); }
+    .title { font-size: 1.25rem; font-weight: 700; letter-spacing: .3px; }
+    .subtitle { color: var(--muted); font-size: .95rem; }
+
+    .shell {
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* Breadcrumbs */
+    .breadcrumbs {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 0; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .crumb {
+      position: relative;
+      padding: 14px 18px 14px 48px;
+      background: rgba(255,255,255,.02);
+      color: var(--muted);
+      font-weight: 600; font-size: .9rem; letter-spacing: .2px;
+    }
+    .crumb.active { color: var(--text); background: rgba(0,121,193,.12); }
+    .crumb::before {
+      content: attr(data-step);
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      width: 24px; height: 24px; display: grid; place-items: center;
+      border-radius: 999px; background: rgba(255,255,255,.08); color: var(--text);
+      font-size: .75rem; font-weight: 700;
+    }
+
+    /* Panels */
+    .panel { padding: 24px; display: none; }
+    .panel.active { display: block; animation: fade .28s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: none;} }
+
+    .grid {
+      display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr);
+    }
+    .col-3 { grid-column: span 3; }
+    .col-4 { grid-column: span 4; }
+    .col-6 { grid-column: span 6; }
+    .col-8 { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+    @media (max-width: 800px) { 
+      .col-3, .col-4, .col-6, .col-8 { grid-column: span 12; } 
+    }
+
+    .card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: calc(var(--radius) - 6px);
+      padding: 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    label { display:block; font-size:.9rem; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], select, textarea {
+      width: 100%; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(12,18,40,.6); color: var(--text);
+      outline: none; transition: border .15s ease, box-shadow .15s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,121,193,.2); }
+
+    .muted { color: var(--muted); font-size: .9rem; }
+    .hint { color: #b9c7ff; font-size: .85rem; }
+
+    .controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; }
+    .btn {
+      padding: 12px 16px; border: 1px solid transparent; border-radius: 12px; cursor: pointer; font-weight: 700;
+      background: var(--accent); color: white; box-shadow: var(--shadow);
+    }
+    .btn.secondary { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.1); color: var(--text); }
+    .btn.ghost { background: transparent; border-color: rgba(255,255,255,.2); color: var(--text); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .inline { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+    .chip { padding:6px 10px; border-radius:999px; background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1); font-size:.8rem; }
+
+    .radio-card { display:flex; gap:12px; align-items:flex-start; padding:14px; border-radius:14px; border:1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); cursor:pointer; }
+    .radio-card:hover { border-color: rgba(0,121,193,.6); }
+
+    .status {
+      display:flex; align-items:center; gap:8px; font-size:.9rem; margin-top:8px; color: var(--muted);
+    }
+    .status.ok { color: var(--accent-2); }
+    .status.warn { color: var(--warning); }
+
+    .summary {
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.25);
+    }
+    .error { color: var(--danger); font-weight: 600; margin-top: 8px; display:none; }
+
+    .footnote { margin-top: 8px; font-size: .8rem; color: var(--muted); }
+    .divider { height:1px; background: rgba(255,255,255,.06); margin: 12px 0; }
+
+    .tooltip { border-bottom:1px dashed rgba(255,255,255,.5); cursor: help; }
+    
+    /* Document preview */
+    .doc-preview {
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(255,255,255,.03);
+      margin-bottom: 12px;
+    }
+    .doc-preview img {
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .doc-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    
+    /* Required field indicator */
+    .required::after {
+      content: "*";
+      color: var(--danger);
+      margin-left: 4px;
+    }
+    
+    /* Flag icons */
+    .flag-icon {
+      width: 24px;
+      height: 18px;
+      margin-right: 8px;
+      vertical-align: middle;
+      border-radius: 2px;
+      border: 1px solid rgba(255,255,255,.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">BMO Yield Exchange — Comprehensive Signup</div>
+          <div class="subtitle">Complete onboarding process with all required compliance documents</div>
+        </div>
+      </div>
+      <div class="inline">
+        <span class="chip">SOC 2 Type II compliant</span>
+        <span class="chip">OWASP‑guided</span>
+        <span class="chip">Audit‑friendly</span>
+      </div>
+    </div>
+
+    <div class="shell" role="region" aria-label="Signup Wizard">
+      <!-- Breadcrumbs -->
+      <div class="breadcrumbs" id="breadcrumbs">
+        <div class="crumb active" data-step="1">Account Basics</div>
+        <div class="crumb active" data-step="2">Jurisdiction</div>
+        <div class="crumb" data-step="3">Compliance Forms</div>
+        <div class="crumb" data-step="4">eDelivery Access</div>
+        <div class="crumb" data-step="5">Review & Consent</div>
+      </div>
+
+      <!-- Panels -->
+      <form id="wizard" novalidate>
+        <!-- STEP 2: Jurisdiction -->
+        <section class="panel active" data-panel="2">
+          <div class="grid">
+            <div class="col-12">
+              <div class="card">
+                <h2 style="margin:0 0 8px 0;">Jurisdiction of Domicile / Tax Residency</h2>
+                <p class="muted" style="margin:0">We branch your compliance forms based on where your entity is a tax resident. This determines which tax forms you'll need to complete.</p>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="grid">
+                <label class="col-12 muted required">Select your primary jurisdiction:</label>
+                
+                <div class="col-12 card radio-card" data-radio="jurisdiction" data-value="CA">
+                  <input type="radio" id="jCA" name="jurisdiction" value="CA" style="margin-top:4px" />
+                  <div>
+                    <strong><img src="https://flagcdn.com/w20/ca.png" class="flag-icon" alt="Canada flag">Canada</strong>
+                    <div class="muted">You'll complete the <span class="tooltip" title="Common Reporting Standard (CRS) by OECD & FATCA alignment">CRS/FATCA</span> self‑certification and provide CRA Business Number(s).</div>
+                    <div class="status ok">✓ Streamlined for Canadian entities</div>
+                  </div>
+                </div>
+
+                <div class="col-12 card radio-card" data-radio="jurisdiction" data-value="US">
+                  <input type="radio" id="jUS" name="jurisdiction" value="US" style="margin-top:4px" />
+                  <div>
+                    <strong><img src="https://flagcdn.com/w20/us.png" class="flag-icon" alt="US flag">United States</strong>
+                    <div class="muted">You'll complete IRS <strong>Form W‑9</strong> (SSN/EIN, federal tax classification, FATCA codes if applicable).</div>
+                    <div class="status ok">✓ W‑9 replaces CRS for U.S. persons</div>
+                  </div>
+                </div>
+
+                <div class="col-12 card radio-card" data-radio="jurisdiction" data-value="OTHER">
+                  <input type="radio" id="jOther" name="jurisdiction" value="OTHER" style="margin-top:4px" />
+                  <div>
+                    <strong><img src="https://flagcdn.com/w20/un.png" class="flag-icon" alt="International">Other Countries</strong>
+                    <div class="muted">You'll complete the <strong>CRS/FATCA</strong> entity self‑certification (TINs for each tax residence; controlling persons if Passive NFE).</div>
+                    <div class="status warn">! May require additional details for reportable jurisdictions</div>
+                  </div>
+                </div>
+                
+                <div class="col-12">
+                  <div class="error" data-error-for="jurisdiction">Please select a jurisdiction to continue.</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Additional Tax Residencies Section -->
+            <div class="col-12" id="additionalTaxSection" style="display: none;">
+              <div class="card">
+                <h3 style="margin-top:0; margin-bottom:12px;">Additional Tax Residencies</h3>
+                <p class="muted">If your entity is tax resident in multiple jurisdictions, please specify all applicable countries.</p>
+                
+                <div id="additionalTaxResidencies">
+                  <div class="grid tax-residency-row">
+                    <div class="col-6">
+                      <label for="additionalCountry1">Additional Country of Tax Residency</label>
+                      <select id="additionalCountry1" name="additionalCountry1" class="additionalCountry">
+                        <option value="">Select...</option>
+                        <option value="AU">Australia</option>
+                        <option value="BR">Brazil</option>
+                        <option value="CA">Canada</option>
+                        <option value="CN">China</option>
+                        <option value="FR">France</option>
+                        <option value="DE">Germany</option>
+                        <option value="IN">India</option>
+                        <option value="IT">Italy</option>
+                        <option value="JP">Japan</option>
+                        <option value="MX">Mexico</option>
+                        <option value="NL">Netherlands</option>
+                        <option value="SG">Singapore</option>
+                        <option value="CH">Switzerland</option>
+                        <option value="GB">United Kingdom</option>
+                        <option value="US">United States</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <label for="additionalTIN1">Tax Identification Number (TIN)</label>
+                      <input type="text" id="additionalTIN1" name="additionalTIN1" placeholder="Enter TIN or reason if unavailable" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="inline" style="margin-top:10px">
+                  <button type="button" class="btn ghost" id="addTaxResidency">+ Add another tax residency</button>
+                </div>
+                
+                <div class="footnote">
+                  Note: Additional tax residencies may require supplementary documentation.
+                </div>
+              </div>
+            </div>
+            
+            <!-- FATCA Status Section -->
+            <div class="col-12">
+              <div class="card">
+                <h3 style="margin-top:0; margin-bottom:12px;">FATCA Classification</h3>
+                <p class="muted">Please indicate your entity's FATCA status. This helps determine reporting requirements.</p>
+                
+                <label for="fatcaStatus" class="required">FATCA Status</label>
+                <select id="fatcaStatus" name="fatcaStatus" required>
+                  <option value="">Select...</option>
+                  <option value="FI_GIIN">Financial Institution with GIIN</option>
+                  <option value="FI_NO_GIIN">Financial Institution without GIIN</option>
+                  <option value="ACTIVE_NFFE">Active NFFE</option>
+                  <option value="PASSIVE_NFFE">Passive NFFE</option>
+                  <option value="EXEMPT">Exempt Entity</option>
+                  <option value="GOVT">Government Entity</option>
+                  <option value="INTL_ORG">International Organization</option>
+                  <option value="CENTRAL_BANK">Central Bank</option>
+                  <option value="PUBLIC_CORP">Publicly Traded Corporation</option>
+                  <option value="RELATED_ENTITY">Related Entity of Publicly Traded Corporation</option>
+                </select>
+                <div class="error" data-error-for="fatcaStatus">Please select a FATCA status.</div>
+                
+                <!-- Conditional GIIN Field -->
+                <div id="giinSection" style="display: none; margin-top: 16px;">
+                  <label for="giin">Global Intermediary Identification Number (GIIN)</label>
+                  <input type="text" id="giin" name="giin" placeholder="Format: XXXXXX.XXXXX.XX.XXX" />
+                  <div class="error" data-error-for="giin">Please enter a valid GIIN.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button type="button" class="btn secondary" data-back>Back</button>
+            <div class="inline">
+              <span class="muted">Step 2 of 5</span>
+              <button type="button" class="btn" data-next>Continue</button>
+            </div>
+          </div>
+        </section>
+      </form>
+    </div>
+
+    <p class="footnote">All fields marked with * are required. Your information is securely processed in accordance with BMO's privacy policy.</p>
+  </div>
+
+  <script>
+    // Simple state store
+    const state = {
+      step: 2,
+      basics: {},
+      jurisdiction: null,
+      additionalTaxResidencies: [],
+      fatcaStatus: null,
+      giin: null,
+      forms: { w9: {}, crs: {} },
+      users: []
+    };
+
+    const panels = [...document.querySelectorAll('.panel')];
+    const crumbs = [...document.querySelectorAll('.crumb')];
+
+    function go(step) {
+      state.step = step;
+      panels.forEach(p => p.classList.toggle('active', +p.dataset.panel === step));
+      crumbs.forEach((c, i) => c.classList.toggle('active', i < step));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function next() { if (validateCurrent()) go(state.step + 1); }
+    function back() { go(Math.max(1, state.step - 1)); }
+
+    // Validation for step 2
+    function validateCurrent() {
+      const step = state.step;
+      let ok = true;
+
+      // reset visible errors
+      document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
+
+      if (step === 2) {
+        // Jurisdiction validation
+        const j = document.querySelector('input[name="jurisdiction"]:checked');
+        if (!j) { 
+          showError('jurisdiction'); 
+          ok = false; 
+        }
+        
+        // FATCA status validation
+        const fatcaStatus = document.getElementById('fatcaStatus');
+        if (!fatcaStatus.value) {
+          showError('fatcaStatus');
+          ok = false;
+        }
+        
+        // GIIN validation if Financial Institution with GIIN is selected
+        if (fatcaStatus.value === 'FI_GIIN') {
+          const giin = document.getElementById('giin');
+          if (!giin.value.trim()) {
+            showError('giin');
+            ok = false;
+          }
+        }
+        
+        // Store data if validation passes
+        if (ok) {
+          state.jurisdiction = j.value;
+          state.fatcaStatus = fatcaStatus.value;
+          state.giin = document.getElementById('giin').value.trim();
+          
+          // Collect additional tax residencies
+          state.additionalTaxResidencies = [];
+          const countrySelects = document.querySelectorAll('.additionalCountry');
+          countrySelects.forEach((select, index) => {
+            const country = select.value;
+            if (country) {
+              const tinInput = document.getElementById(`additionalTIN${index + 1}`);
+              state.additionalTaxResidencies.push({
+                country: country,
+                tin: tinInput ? tinInput.value.trim() : ''
+              });
+            }
+          });
+        }
+      }
+
+      return ok;
+    }
+
+    function showError(key) {
+      const el = document.querySelector(`[data-error-for="${key}"]`);
+      if (el) el.style.display = 'block';
+    }
+
+    // Wire up nav buttons
+    document.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', next));
+    document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', back));
+    
+    // Clickable radio-cards
+    document.querySelectorAll('[data-radio="jurisdiction"]').forEach(card => {
+      card.addEventListener('click', () => {
+        const val = card.getAttribute('data-value');
+        document.querySelectorAll('input[name="jurisdiction"]').forEach(r => r.checked = (r.value === val));
+        
+        // Show additional tax residencies section for non-US jurisdictions
+        const additionalTaxSection = document.getElementById('additionalTaxSection');
+        if (val !== 'US') {
+          additionalTaxSection.style.display = 'block';
+        } else {
+          additionalTaxSection.style.display = 'none';
+        }
+      });
+    });
+    
+    // Show/hide GIIN field based on FATCA status
+    document.getElementById('fatcaStatus').addEventListener('change', function() {
+      const giinSection = document.getElementById('giinSection');
+      if (this.value === 'FI_GIIN') {
+        giinSection.style.display = 'block';
+      } else {
+        giinSection.style.display = 'none';
+      }
+    });
+    
+    // Add additional tax residency
+    let taxResidencyCounter = 1;
+    document.getElementById('addTaxResidency').addEventListener('click', function() {
+      taxResidencyCounter++;
+      const container = document.getElementById('additionalTaxResidencies');
+      const newRow = document.createElement('div');
+      newRow.className = 'grid tax-residency-row';
+      newRow.innerHTML = `
+        <div class="col-6">
+          <label for="additionalCountry${taxResidencyCounter}">Additional Country of Tax Residency</label>
+          <select id="additionalCountry${taxResidencyCounter}" name="additionalCountry${taxResidencyCounter}" class="additionalCountry">
+            <option value="">Select...</option>
+            <option value="AU">Australia</option>
+            <option value="BR">Brazil</option>
+            <option value="CA">Canada</option>
+            <option value="CN">China</option>
+            <option value="FR">France</option>
+            <option value="DE">Germany</option>
+            <option value="IN">India</option>
+            <option value="IT">Italy</option>
+            <option value="JP">Japan</option>
+            <option value="MX">Mexico</option>
+            <option value="NL">Netherlands</option>
+            <option value="SG">Singapore</option>
+            <option value="CH">Switzerland</option>
+            <option value="GB">United Kingdom</option>
+            <option value="US">United States</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label for="additionalTIN${taxResidencyCounter}">Tax Identification Number (TIN)</label>
+          <input type="text" id="additionalTIN${taxResidencyCounter}" name="additionalTIN${taxResidencyCounter}" placeholder="Enter TIN or reason if unavailable" />
+        </div>
+      `;
+      container.appendChild(newRow);
+    });
+  </script>
+</body>
+</html>

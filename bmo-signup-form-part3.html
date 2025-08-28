@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BMO Yield Exchange • W-9 Form</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #0f162d;
+      --muted: #8b97b4;
+      --text: #e9eefc;
+      --accent: #0079c1; /* BMO Blue */
+      --accent-2: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1000px 800px at 85% -10%, #1a2650 0%, var(--bg) 60%);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; margin-bottom: 22px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), #6aa2ff); box-shadow: var(--shadow); }
+    .title { font-size: 1.25rem; font-weight: 700; letter-spacing: .3px; }
+    .subtitle { color: var(--muted); font-size: .95rem; }
+
+    .shell {
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* Breadcrumbs */
+    .breadcrumbs {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 0; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .crumb {
+      position: relative;
+      padding: 14px 18px 14px 48px;
+      background: rgba(255,255,255,.02);
+      color: var(--muted);
+      font-weight: 600; font-size: .9rem; letter-spacing: .2px;
+    }
+    .crumb.active { color: var(--text); background: rgba(0,121,193,.12); }
+    .crumb::before {
+      content: attr(data-step);
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      width: 24px; height: 24px; display: grid; place-items: center;
+      border-radius: 999px; background: rgba(255,255,255,.08); color: var(--text);
+      font-size: .75rem; font-weight: 700;
+    }
+
+    /* Panels */
+    .panel { padding: 24px; display: none; }
+    .panel.active { display: block; animation: fade .28s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: none;} }
+
+    .grid {
+      display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr);
+    }
+    .col-3 { grid-column: span 3; }
+    .col-4 { grid-column: span 4; }
+    .col-6 { grid-column: span 6; }
+    .col-8 { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+    @media (max-width: 800px) { 
+      .col-3, .col-4, .col-6, .col-8 { grid-column: span 12; } 
+    }
+
+    .card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: calc(var(--radius) - 6px);
+      padding: 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    label { display:block; font-size:.9rem; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], select, textarea {
+      width: 100%; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(12,18,40,.6); color: var(--text);
+      outline: none; transition: border .15s ease, box-shadow .15s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,121,193,.2); }
+
+    .muted { color: var(--muted); font-size: .9rem; }
+    .hint { color: #b9c7ff; font-size: .85rem; }
+
+    .controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; }
+    .btn {
+      padding: 12px 16px; border: 1px solid transparent; border-radius: 12px; cursor: pointer; font-weight: 700;
+      background: var(--accent); color: white; box-shadow: var(--shadow);
+    }
+    .btn.secondary { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.1); color: var(--text); }
+    .btn.ghost { background: transparent; border-color: rgba(255,255,255,.2); color: var(--text); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .inline { display:flex; gap:12px; align-items:center; flex-wrap: wrap; }
+    .checkbox-group { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
+    .checkbox-group input[type="checkbox"] { margin-top: 3px; }
+
+    .status {
+      display:flex; align-items:center; gap:8px; font-size:.9rem; margin-top:8px; color: var(--muted);
+    }
+    .status.ok { color: var(--accent-2); }
+    .status.warn { color: var(--warning); }
+
+    .summary {
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.25);
+    }
+    .error { color: var(--danger); font-weight: 600; margin-top: 8px; display:none; }
+
+    .footnote { margin-top: 8px; font-size: .8rem; color: var(--muted); }
+    .divider { height:1px; background: rgba(255,255,255,.06); margin: 12px 0; }
+
+    .tooltip { border-bottom:1px dashed rgba(255,255,255,.5); cursor: help; }
+    
+    /* Document preview */
+    .doc-preview {
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(255,255,255,.03);
+      margin-bottom: 12px;
+    }
+    .doc-preview img {
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .doc-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    
+    /* Required field indicator */
+    .required::after {
+      content: "*";
+      color: var(--danger);
+      margin-left: 4px;
+    }
+    
+    /* Form header */
+    .form-header {
+      background: rgba(0,121,193,.1);
+      border: 1px solid rgba(0,121,193,.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }
+    
+    /* IRS form styling */
+    .irs-form {
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      padding: 16px;
+      background: rgba(255,255,255,.02);
+    }
+    
+    .irs-form-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    
+    .irs-form-subtitle {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 12px;
+      color: var(--muted);
+    }
+    
+    .irs-form-section {
+      margin-bottom: 20px;
+    }
+    
+    .irs-form-instructions {
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding: 10px;
+      background: rgba(255,255,255,.03);
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">BMO Yield Exchange — Comprehensive Signup</div>
+          <div class="subtitle">Complete onboarding process with all required compliance documents</div>
+        </div>
+      </div>
+      <div class="inline">
+        <span class="chip">SOC 2 Type II compliant</span>
+        <span class="chip">OWASP‑guided</span>
+        <span class="chip">Audit‑friendly</span>
+      </div>
+    </div>
+
+    <div class="shell" role="region" aria-label="Signup Wizard">
+      <!-- Breadcrumbs -->
+      <div class="breadcrumbs" id="breadcrumbs">
+        <div class="crumb active" data-step="1">Account Basics</div>
+        <div class="crumb active" data-step="2">Jurisdiction</div>
+        <div class="crumb active" data-step="3">Compliance Forms</div>
+        <div class="crumb" data-step="4">eDelivery Access</div>
+        <div class="crumb" data-step="5">Review & Consent</div>
+      </div>
+
+      <!-- Panels -->
+      <form id="wizard" novalidate>
+        <!-- STEP 3: W-9 Form for US Entities -->
+        <section class="panel active" data-panel="3">
+          <div class="grid">
+            <div class="col-12">
+              <div class="form-header">
+                <h2 style="margin:0 0 8px 0;">IRS Form W-9</h2>
+                <p class="muted" style="margin:0">Request for Taxpayer Identification Number and Certification</p>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="irs-form">
+                <div class="irs-form-title">Form W-9 (Rev. October 2023)</div>
+                <div class="irs-form-subtitle">Department of the Treasury • Internal Revenue Service</div>
+                
+                <div class="irs-form-instructions">
+                  <p><strong>Purpose of Form:</strong> A person who is required to file an information return with the IRS must obtain your correct taxpayer identification number (TIN) to report income paid to you, real estate transactions, mortgage interest you paid, acquisition or abandonment of secured property, cancellation of debt, or contributions you made to an IRA.</p>
+                </div>
+                
+                <div class="irs-form-section">
+                  <div class="grid">
+                    <div class="col-12">
+                      <label for="w9_name" class="required">1. Name (as shown on your income tax return)</label>
+                      <input id="w9_name" name="w9_name" type="text" required placeholder="Enter legal name" />
+                      <div class="error" data-error-for="w9_name">Please enter your legal name as shown on your tax return.</div>
+                    </div>
+                    
+                    <div class="col-12">
+                      <label for="w9_business_name">2. Business name/disregarded entity name, if different from above</label>
+                      <input id="w9_business_name" name="w9_business_name" type="text" placeholder="If applicable" />
+                    </div>
+                    
+                    <div class="col-12">
+                      <label class="required">3. Federal tax classification (check appropriate box)</label>
+                      <div class="grid" style="gap: 10px;">
+                        <div class="col-6">
+                          <div class="checkbox-group">
+                            <input type="radio" id="w9_individual" name="w9_tax_classification" value="individual" required />
+                            <label for="w9_individual">Individual/sole proprietor or single-member LLC</label>
+                          </div>
+                        </div>
+                        
+                        <div class="col-6">
+                          <div class="checkbox-group">
+                            <input type="radio" id="w9_c_corp" name="w9_tax_classification" value="c_corporation" />
+                            <label for="w9_c_corp">C Corporation</label>
+                          </div>
+                        </div>
+                        
+                        <div class="col-6">
+                          <div class="checkbox-group">
+                            <input type="radio" id="w9_s_corp" name="w9_tax_classification" value="s_corporation" />
+                            <label for="w9_s_corp">S Corporation</label>
+                          </div>
+                        </div>
+                        
+                        <div class="col-6">
+                          <div class="checkbox-group">
+                            <input type="radio" id="w9_partnership" name="w9_tax_classification" value="partnership" />
+                            <label for="w9_partnership">Partnership</label>
+                          </div>
+                        </div>
+                        
+                        <div class="col-6">
+                          <div class="checkbox-group">
+                            <input type="radio" id="w9_trust_estate" name="w9_tax_classification" value="trust_estate" />
+                            <label for="w9_trust_estate">Trust/estate</label>
+                          </div>
+                        </div>
+                        
+                        <div class="col-6">
+                          <div class="checkbox-group">
+                            <input type="radio" id="w9_llc" name="w9_tax_classification" value="llc" />
+                            <label for="w9_llc">Limited liability company</label>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div id="llc_tax_class_section" style="display: none; margin-top: 12px;">
+                        <label for="w9_llc_tax_class" class="required">Enter the tax classification (C=C corporation, S=S corporation, P=Partnership)</label>
+                        <select id="w9_llc_tax_class" name="w9_llc_tax_class">
+                          <option value="">Select...</option>
+                          <option value="C">C - C Corporation</option>
+                          <option value="S">S - S Corporation</option>
+                          <option value="P">P - Partnership</option>
+                        </select>
+                      </div>
+                      
+                      <div class="error" data-error-for="w9_tax_classification">Please select a federal tax classification.</div>
+                    </div>
+                    
+                    <div class="col-12">
+                      <label for="w9_exempt_payee" style="margin-top: 12px;">4. Exemptions (codes apply only to certain entities, not individuals)</label>
+                      <div class="grid" style="gap: 10px;">
+                        <div class="col-6">
+                          <label for="w9_exempt_payee_code">Exempt payee code (if any)</label>
+                          <input id="w9_exempt_payee_code" name="w9_exempt_payee_code" type="text" placeholder="If applicable" />
+                        </div>
+                        
+                        <div class="col-6">
+                          <label for="w9_exempt_fatca_code">Exemption from FATCA reporting code (if any)</label>
+                          <input id="w9_exempt_fatca_code" name="w9_exempt_fatca_code" type="text" placeholder="If applicable" />
+                        </div>
+                      </div>
+                      <div class="footnote">Applies to accounts maintained outside the U.S.</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="irs-form-section">
+                  <div class="grid">
+                    <div class="col-12">
+                      <label for="w9_address" class="required">5. Address (number, street, and apt. or suite no.)</label>
+                      <input id="w9_address" name="w9_address" type="text" required placeholder="Enter address" />
+                      <div class="error" data-error-for="w9_address">Please enter your address.</div>
+                    </div>
+                    
+                    <div class="col-12">
+                      <label for="w9_city_state_zip" class="required">6. City, state, and ZIP code</label>
+                      <input id="w9_city_state_zip" name="w9_city_state_zip" type="text" required placeholder="City, ST 12345" />
+                      <div class="error" data-error-for="w9_city_state_zip">Please enter your city, state, and ZIP code.</div>
+                    </div>
+                    
+                    <div class="col-12">
+                      <label for="w9_account_numbers">7. List account number(s) here (optional)</label>
+                      <input id="w9_account_numbers" name="w9_account_numbers" type="text" placeholder="If applicable" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="irs-form-section">
+                  <h3 style="margin-top: 0;">Part I: Taxpayer Identification Number (TIN)</h3>
+                  <p class="muted">Enter your TIN in the appropriate box. The TIN provided must match the name given on line 1 to avoid backup withholding.</p>
+                  
+                  <div class="grid">
+                    <div class="col-6">
+                      <label for="w9_ssn" class="required">Social Security Number (SSN)</label>
+                      <input id="w9_ssn" name="w9_ssn" type="text" placeholder="XXX-XX-XXXX" />
+                    </div>
+                    
+                    <div class="col-6">
+                      <label for="w9_ein" class="required">Employer Identification Number (EIN)</label>
+                      <input id="w9_ein" name="w9_ein" type="text" placeholder="XX-XXXXXXX" />
+                    </div>
+                  </div>
+                  <div class="footnote">Note: You must provide either an SSN or EIN, but not both.</div>
+                  <div class="error" data-error-for="w9_tin">Please enter either a Social Security Number or an Employer Identification Number.</div>
+                </div>
+                
+                <div class="irs-form-section">
+                  <h3 style="margin-top: 0;">Part II: Certification</h3>
+                  <div class="checkbox-group">
+                    <input type="checkbox" id="w9_certification" name="w9_certification" required />
+                    <label for="w9_certification" class="required">Under penalties of perjury, I certify that:</label>
+                  </div>
+                  <ol style="color: var(--muted); font-size: 0.9rem; padding-left: 20px;">
+                    <li>The number shown on this form is my correct taxpayer identification number (or I am waiting for a number to be issued to me); and</li>
+                    <li>I am not subject to backup withholding because: (a) I am exempt from backup withholding, or (b) I have not been notified by the Internal Revenue Service (IRS) that I am subject to backup withholding as a result of a failure to report all interest or dividends, or (c) the IRS has notified me that I am no longer subject to backup withholding; and</li>
+                    <li>I am a U.S. citizen or other U.S. person; and</li>
+                    <li>The FATCA code(s) entered on this form (if any) indicating that I am exempt from FATCA reporting is correct.</li>
+                  </ol>
+                  <div class="error" data-error-for="w9_certification">You must certify the above statements to continue.</div>
+                </div>
+                
+                <div class="irs-form-section">
+                  <div class="grid">
+                    <div class="col-6">
+                      <label for="w9_signature" class="required">Electronic Signature (Full Name)</label>
+                      <input id="w9_signature" name="w9_signature" type="text" required placeholder="Type your full name" />
+                      <div class="error" data-error-for="w9_signature">Please enter your full name as your electronic signature.</div>
+                    </div>
+                    
+                    <div class="col-6">
+                      <label for="w9_date" class="required">Date</label>
+                      <input id="w9_date" name="w9_date" type="date" required />
+                      <div class="error" data-error-for="w9_date">Please enter today's date.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button type="button" class="btn secondary" data-back>Back</button>
+            <div class="inline">
+              <span class="muted">Step 3 of 5</span>
+              <button type="button" class="btn" data-next>Continue</button>
+            </div>
+          </div>
+        </section>
+      </form>
+    </div>
+
+    <p class="footnote">All fields marked with * are required. Your information is securely processed in accordance with BMO's privacy policy.</p>
+  </div>
+
+  <script>
+    // Simple state store
+    const state = {
+      step: 3,
+      basics: {},
+      jurisdiction: 'US',
+      w9Form: {},
+      users: []
+    };
+
+    const panels = [...document.querySelectorAll('.panel')];
+    const crumbs = [...document.querySelectorAll('.crumb')];
+
+    function go(step) {
+      state.step = step;
+      panels.forEach(p => p.classList.toggle('active', +p.dataset.panel === step));
+      crumbs.forEach((c, i) => c.classList.toggle('active', i < step));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function next() { if (validateCurrent()) go(state.step + 1); }
+    function back() { go(Math.max(1, state.step - 1)); }
+
+    // Validation for step 3 (W-9 Form)
+    function validateCurrent() {
+      const step = state.step;
+      let ok = true;
+
+      // reset visible errors
+      document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
+
+      if (step === 3) {
+        // Basic validation for required W-9 fields
+        const requiredFields = [
+          'w9_name',
+          'w9_address',
+          'w9_city_state_zip',
+          'w9_signature',
+          'w9_date'
+        ];
+        
+        requiredFields.forEach(field => {
+          const el = document.getElementById(field);
+          if (!el.value.trim()) {
+            showError(field);
+            ok = false;
+          }
+        });
+        
+        // Tax classification validation
+        const taxClassification = document.querySelector('input[name="w9_tax_classification"]:checked');
+        if (!taxClassification) {
+          showError('w9_tax_classification');
+          ok = false;
+        } else if (taxClassification.value === 'llc') {
+          const llcClass = document.getElementById('w9_llc_tax_class');
+          if (!llcClass.value) {
+            showError('w9_tax_classification');
+            ok = false;
+          }
+        }
+        
+        // TIN validation (either SSN or EIN must be provided)
+        const ssn = document.getElementById('w9_ssn').value.trim();
+        const ein = document.getElementById('w9_ein').value.trim();
+        if (!ssn && !ein) {
+          showError('w9_tin');
+          ok = false;
+        }
+        
+        // Certification validation
+        if (!document.getElementById('w9_certification').checked) {
+          showError('w9_certification');
+          ok = false;
+        }
+        
+        // Store data if validation passes
+        if (ok) {
+          state.w9Form = {
+            name: document.getElementById('w9_name').value.trim(),
+            businessName: document.getElementById('w9_business_name').value.trim(),
+            taxClassification: taxClassification.value,
+            llcTaxClass: document.getElementById('w9_llc_tax_class').value,
+            exemptPayeeCode: document.getElementById('w9_exempt_payee_code').value.trim(),
+            exemptFatcaCode: document.getElementById('w9_exempt_fatca_code').value.trim(),
+            address: document.getElementById('w9_address').value.trim(),
+            cityStateZip: document.getElementById('w9_city_state_zip').value.trim(),
+            accountNumbers: document.getElementById('w9_account_numbers').value.trim(),
+            ssn: ssn,
+            ein: ein,
+            certification: true,
+            signature: document.getElementById('w9_signature').value.trim(),
+            date: document.getElementById('w9_date').value
+          };
+        }
+      }
+
+      return ok;
+    }
+
+    function showError(key) {
+      const el = document.querySelector(`[data-error-for="${key}"]`);
+      if (el) el.style.display = 'block';
+    }
+
+    // Wire up nav buttons
+    document.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', next));
+    document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', back));
+    
+    // Show/hide LLC tax classification dropdown
+    document.querySelectorAll('input[name="w9_tax_classification"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const llcSection = document.getElementById('llc_tax_class_section');
+        if (this.value === 'llc') {
+          llcSection.style.display = 'block';
+        } else {
+          llcSection.style.display = 'none';
+        }
+      });
+    });
+    
+    // Format SSN input
+    document.getElementById('w9_ssn').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length > 9) value = value.slice(0, 9);
+      
+      if (value.length > 5) {
+        value = value.slice(0, 3) + '-' + value.slice(3, 5) + '-' + value.slice(5);
+      } else if (value.length > 3) {
+        value = value.slice(0, 3) + '-' + value.slice(3);
+      }
+      
+      e.target.value = value;
+    });
+    
+    // Format EIN input
+    document.getElementById('w9_ein').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length > 9) value = value.slice(0, 9);
+      
+      if (value.length > 2) {
+        value = value.slice(0, 2) + '-' + value.slice(2);
+      }
+      
+      e.target.value = value;
+    });
+  </script>
+</body>
+</html>
