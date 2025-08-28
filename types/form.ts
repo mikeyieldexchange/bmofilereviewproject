@@ -39,6 +39,28 @@ export interface W9FormData {
   date?: string
 }
 
+export interface EDeliveryConsent {
+  consentToElectronic?: boolean
+  emailAddress?: string
+  communicationPreferences?: string[]
+  languagePreference?: string
+  optOutRights?: boolean
+  systemRequirements?: boolean
+}
+
+export interface PortalAccess {
+  username?: string
+  securityQuestions?: SecurityQuestion[]
+  twoFactorAuth?: boolean
+  accessPermissions?: string[]
+  termsAcceptance?: boolean
+}
+
+export interface SecurityQuestion {
+  question: string
+  answer: string
+}
+
 export interface FormData {
   basics: BasicInfo
   jurisdiction: string | null
@@ -46,4 +68,6 @@ export interface FormData {
   fatcaStatus: string | null
   giin: string | null
   w9Form: W9FormData
+  eDeliveryConsent: EDeliveryConsent
+  portalAccess: PortalAccess
 }
