@@ -93,14 +93,17 @@ export default function Jurisdiction({ data, onUpdate, onNext, onPrev, currentSt
       isValid = false
     }
 
-    if (!formData.fatcaStatus) {
-      newErrors.fatcaStatus = true
-      isValid = false
-    }
+    // FATCA status only required for non-Canadian jurisdictions
+    if (formData.jurisdiction !== 'CA') {
+      if (!formData.fatcaStatus) {
+        newErrors.fatcaStatus = true
+        isValid = false
+      }
 
-    if (formData.fatcaStatus === 'FI_GIIN' && !formData.giin?.trim()) {
-      newErrors.giin = true
-      isValid = false
+      if (formData.fatcaStatus === 'FI_GIIN' && !formData.giin?.trim()) {
+        newErrors.giin = true
+        isValid = false
+      }
     }
 
     setErrors(newErrors)
@@ -249,45 +252,52 @@ export default function Jurisdiction({ data, onUpdate, onNext, onPrev, currentSt
         </div>
       )}
       
-      <div className="col-12">
-        <div className="card">
-          <h3 style={{ marginTop: 0, marginBottom: '12px' }}>FATCA Classification</h3>
-          <p className="muted">Please indicate your entity's FATCA status. This helps determine reporting requirements.</p>
-          
-          <label htmlFor="fatcaStatus" className="required">FATCA Status</label>
-          <select
-            id="fatcaStatus"
-            value={formData.fatcaStatus || ''}
-            onChange={(e) => handleFatcaChange(e.target.value)}
-          >
-            <option value="">Select...</option>
-            <option value="FI_GIIN">Financial Institution with GIIN</option>
-            <option value="FI_NO_GIIN">Financial Institution without GIIN</option>
-            <option value="ACTIVE_NFFE">Active NFFE</option>
-            <option value="PASSIVE_NFFE">Passive NFFE</option>
-            <option value="EXEMPT">Exempt Entity</option>
-            <option value="GOVT">Government Entity</option>
-            <option value="INTL_ORG">International Organization</option>
-            <option value="CENTRAL_BANK">Central Bank</option>
-            <option value="PUBLIC_CORP">Publicly Traded Corporation</option>
-            <option value="RELATED_ENTITY">Related Entity of Publicly Traded Corporation</option>
-          </select>
-          {errors.fatcaStatus && <div className="error show">Please select a FATCA status.</div>}
-          
-          {showGiin && (
-            <div style={{ marginTop: '16px' }}>
-              <label htmlFor="giin">Global Intermediary Identification Number (GIIN)</label>
-              <input
-                type="text"
-                id="giin"
-                value={formData.giin || ''}
-                onChange={(e) => handleGiinChange(e.target.value)}
-                placeholder="Format: XXXXXX.XXXXX.XX.XXX"
-              />
-              {errors.giin && <div className="error show">Please enter a valid GIIN.</div>}
-            </div>
-          )}
+      {/* FATCA Status Section - Only for non-Canadian jurisdictions */}
+      {formData.jurisdiction !== 'CA' && (
+        <div className="col-12">
+          <div className="card">
+            <h3 style={{ marginTop: 0, marginBottom: '12px' }}>FATCA Classification</h3>
+            <p className="muted">Please indicate your entity's FATCA status. This helps determine reporting requirements for US tax compliance.</p>
+            
+            <label htmlFor="fatcaStatus" className="required">FATCA Status</label>
+            <select
+              id="fatcaStatus"
+              value={formData.fatcaStatus || ''}
+              onChange={(e) => handleFatcaChange(e.target.value)}
+            >
+              <option value="">Select...</option>
+              <option value="FI_GIIN">Financial Institution with GIIN</option>
+              <option value="FI_NO_GIIN">Financial Institution without GIIN</option>
+              <option value="ACTIVE_NFFE">Active NFFE</option>
+              <option value="PASSIVE_NFFE">Passive NFFE</option>
+              <option value="EXEMPT">Exempt Entity</option>
+              <option value="GOVT">Government Entity</option>
+              <option value="INTL_ORG">International Organization</option>
+              <option value="CENTRAL_BANK">Central Bank</option>
+              <option value="PUBLIC_CORP">Publicly Traded Corporation</option>
+              <option value="RELATED_ENTITY">Related Entity of Publicly Traded Corporation</option>
+            </select>
+            {errors.fatcaStatus && <div className="error show">Please select a FATCA status.</div>}
+            
+            {showGiin && (
+              <div style={{ marginTop: '16px' }}>
+                <label htmlFor="giin">Global Intermediary Identification Number (GIIN)</label>
+                <input
+                  type="text"
+                  id="giin"
+                  value={formData.giin || ''}
+                  onChange={(e) => handleGiinChange(e.target.value)}
+                  placeholder="Format: XXXXXX.XXXXX.XX.XXX"
+                />
+                {errors.giin && <div className="error show">Please enter a valid GIIN.</div>}
+              </div>
+            )}
+          </div>
         </div>
+      )}
+
+      <div className="col-12">
+        {errors.jurisdiction && <div className="error show">Please select a jurisdiction to continue.</div>}
       </div>
 
       <div className="controls">
