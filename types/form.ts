@@ -338,15 +338,35 @@ export interface FormMetadata {
 }
 
 export interface FormData {
-  basics: BasicInfo
-  jurisdiction: string | null
-  additionalTaxResidencies: TaxResidency[]
-  fatcaStatus: string | null
-  giin: string | null
-  w9Form: W9FormData
-  crsFatcaForm: CRSFATCAData
-  eDeliveryConsent: EDeliveryConsent
-  portalAccess: PortalAccess
+  basics?: BasicInfo
+  personalDetails?: Pick<BasicInfo, 'contactFirstName' | 'contactLastName' | 'contactTitle' | 'contactEmail' | 'contactPhone' | 'contactTimezone' | 'contactLinkedIn' | 'language'>
+  jurisdiction?: string | null
+  additionalTaxResidencies?: TaxResidency[]
+  fatcaStatus?: string | null
+  giin?: string | null
+  w9Form?: W9FormData
+  crsFatcaForm?: CRSFATCAData
+  termsAndConditions?: {
+    termsAccepted?: boolean
+    termsAcceptedDate?: string
+    termsVersion?: string
+  }
+  keyIndividuals?: {
+    keyIndividuals?: KeyIndividual[]
+  }
+  documentUpload?: {
+    uploadedDocuments?: Array<{
+      id: string
+      name: string
+      type: string
+      size: number
+      uploadDate: string
+      status: 'uploading' | 'completed' | 'error'
+    }>
+    documentsSkipped?: boolean
+  }
+  eDeliveryConsent?: EDeliveryConsent
+  portalAccess?: PortalAccess
   
   // Enhanced state management
   validation?: ValidationState

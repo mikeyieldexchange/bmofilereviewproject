@@ -35,8 +35,7 @@ export default function AccountBasics({ data, onUpdate, onNext, onPrev, currentS
   const validate = () => {
     const requiredFields = [
       'entityName', 'entityType', 'incorporationDate',
-      'contactFirstName', 'contactLastName', 'contactTitle', 'contactEmail', 'contactPhone',
-      'address1', 'city', 'state', 'postalCode', 'country', 'language'
+      'address1', 'city', 'state', 'postalCode', 'country'
     ]
     
     const newErrors: Record<string, boolean> = {}
@@ -344,48 +343,6 @@ export default function AccountBasics({ data, onUpdate, onNext, onPrev, currentS
               {errors.contactPhone && <div className="error show">Please enter a valid phone number.</div>}
             </div>
             
-            <div className="col-6">
-              <label htmlFor="contactTimezone">Timezone</label>
-              <select
-                id="contactTimezone"
-                value={formData.contactTimezone || ''}
-                onChange={(e) => handleChange('contactTimezone', e.target.value)}
-              >
-                <option value="">Select timezone</option>
-                <option value="America/Toronto">Eastern Time (Toronto)</option>
-                <option value="America/Winnipeg">Central Time (Winnipeg)</option>
-                <option value="America/Edmonton">Mountain Time (Edmonton)</option>
-                <option value="America/Vancouver">Pacific Time (Vancouver)</option>
-                <option value="America/New_York">Eastern Time (New York)</option>
-                <option value="America/Chicago">Central Time (Chicago)</option>
-                <option value="America/Denver">Mountain Time (Denver)</option>
-                <option value="America/Los_Angeles">Pacific Time (Los Angeles)</option>
-              </select>
-            </div>
-            
-            <div className="col-6">
-              <label htmlFor="contactLinkedIn">LinkedIn Profile (optional)</label>
-              <input
-                id="contactLinkedIn"
-                type="url"
-                value={formData.contactLinkedIn || ''}
-                onChange={(e) => handleChange('contactLinkedIn', e.target.value)}
-                placeholder="https://linkedin.com/in/username"
-              />
-            </div>
-            
-            <div className="col-6">
-              <label htmlFor="language">Language Preference</label>
-              <select
-                id="language"
-                value={formData.language || 'en'}
-                onChange={(e) => handleChange('language', e.target.value)}
-              >
-                <option value="en">English</option>
-                <option value="fr">French</option>
-              </select>
-              <p className="footnote">Language preference will be applied to eDelivery notifications.</p>
-            </div>
           </div>
         </div>
       </div>

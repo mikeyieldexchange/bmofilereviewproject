@@ -1,8 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import AccountBasics from './forms/AccountBasics'
+import PersonalDetails from './forms/PersonalDetails'
 import Jurisdiction from './forms/Jurisdiction'
 import W9Form from './forms/W9Form'
 import CRSFATCAForm from './forms/CRSFATCAForm'
+import TermsAndConditions from './forms/TermsAndConditions'
+import KeyIndividuals from './forms/KeyIndividuals'
+import DocumentUpload from './forms/DocumentUpload'
 import EDeliveryStep from './forms/EDeliveryStep'
 import { FormData } from '../types/form'
 
@@ -21,37 +25,42 @@ interface ValidationState {
 }
 
 const steps = [
-  { id: 1, title: 'Account Basics', progress: 20, component: 'AccountBasics' },
-  { id: 2, title: 'Jurisdiction', progress: 40, component: 'Jurisdiction' },
-  { id: 3, title: 'Compliance Forms', progress: 60, component: 'W9Form|CRSFATCAForm' },
-  { id: 4, title: 'eDelivery Access', progress: 80, component: 'EDeliveryStep' },
-  { id: 5, title: 'Review & Consent', progress: 100, component: 'ReviewConsent' }
+  { id: 1, title: 'Account Basics', progress: 11, component: 'AccountBasics' },
+  { id: 2, title: 'Personal Details', progress: 22, component: 'PersonalDetails' },
+  { id: 3, title: 'Jurisdiction', progress: 33, component: 'Jurisdiction' },
+  { id: 4, title: 'Compliance Forms', progress: 44, component: 'W9Form|CRSFATCAForm' },
+  { id: 5, title: 'eDelivery Access', progress: 56, component: 'EDeliveryStep' },
+  { id: 6, title: 'Terms & Conditions', progress: 67, component: 'TermsAndConditions' },
+  { id: 7, title: 'Key Individuals', progress: 78, component: 'KeyIndividuals' },
+  { id: 8, title: 'Document Upload', progress: 89, component: 'DocumentUpload' },
+  { id: 9, title: 'Review & Consent', progress: 100, component: 'ReviewConsent' }
 ]
 
 export default function SignupWizard() {
   const [currentStep, setCurrentStep] = useState(1)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
-  const [formData, setFormData] = useState<FormData>({
-    basics: {},
-    jurisdiction: null,
-    w9Form: {},
-    additionalTaxResidencies: [],
-    fatcaStatus: null,
-    giin: null,
-    crsFatcaForm: {},
-    eDeliveryConsent: {},
-    portalAccess: {},
-    progress: {
-      currentStep: 1,
-      completedSteps: [],
-      totalSteps: 5,
-      percentage: 20
-    },
-    metadata: {
-      startTime: new Date(),
-      lastSaved: new Date(),
-      sessionId: generateSessionId(),
-      userAgent: typeof window !== 'undefined' ? navigator.userAgent : 'server'
+  const [formData, setFormData] = useState<FormData>(() => {
+    // Initialize with minimal data to avoid hydration mismatch
+    return {
+      basics: {},
+      personalDetails: {},
+      jurisdiction: null,
+      w9Form: {},
+      additionalTaxResidencies: [],
+      fatcaStatus: null,
+      giin: null,
+      crsFatcaForm: {},
+      termsAndConditions: {},
+      keyIndividuals: {},
+      documentUpload: {},
+      eDeliveryConsent: {},
+      portalAccess: {},
+      progress: {
+        currentStep: 1,
+        completedSteps: [],
+        totalSteps: 9,
+        percentage: 11
+      }
     }
   })
   const [validationState, setValidationState] = useState<ValidationState>({})
@@ -60,6 +69,21 @@ export default function SignupWizard() {
   function generateSessionId(): string {
     return `bmo-signup-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   }
+
+  // Initialize metadata only on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setFormData(prev => ({
+        ...prev,
+        metadata: {
+          startTime: new Date(),
+          sessionId: generateSessionId(),
+          lastSaved: new Date(),
+          userAgent: navigator.userAgent
+        }
+      }))
+    }
+  }, [])
 
   // Enhanced form data update with auto-save
   const updateFormData = useCallback((section: keyof FormData, data: any) => {
@@ -74,10 +98,7 @@ export default function SignupWizard() {
           userAgent: typeof window !== 'undefined' ? navigator.userAgent : 'server'
         }
       }
-      
-      // Auto-save to localStorage
       saveToLocalStorage(updated)
-      
       return updated
     })
   }, [])
@@ -170,7 +191,7 @@ export default function SignupWizard() {
       case 1:
         return (
           <AccountBasics
-            data={formData.basics}
+            data={formData.basics || {}}
             onUpdate={(data) => updateFormData('basics', data)}
             onNext={nextStep}
             onPrev={prevStep}
@@ -179,12 +200,22 @@ export default function SignupWizard() {
         )
       case 2:
         return (
+          <PersonalDetails
+            data={formData.personalDetails || {}}
+            onUpdate={(data) => updateFormData('personalDetails', data)}
+            onNext={nextStep}
+            onPrev={prevStep}
+            currentStep={currentStep}
+          />
+        )
+      case 3:
+        return (
           <Jurisdiction
             data={{
-              jurisdiction: formData.jurisdiction,
-              additionalTaxResidencies: formData.additionalTaxResidencies,
-              fatcaStatus: formData.fatcaStatus,
-              giin: formData.giin
+              jurisdiction: formData.jurisdiction || null,
+              additionalTaxResidencies: formData.additionalTaxResidencies || [],
+              fatcaStatus: formData.fatcaStatus || null,
+              giin: formData.giin || null
             }}
             onUpdate={(data) => {
               updateFormData('jurisdiction', data.jurisdiction)
@@ -197,7 +228,7 @@ export default function SignupWizard() {
             currentStep={currentStep}
           />
         )
-      case 3:
+      case 4:
         // Route to appropriate compliance form based on jurisdiction
         if (formData.jurisdiction === 'US') {
           return (
@@ -213,7 +244,7 @@ export default function SignupWizard() {
           // For non-US jurisdictions, show CRS/FATCA form
           return (
             <CRSFATCAForm
-              data={formData.crsFatcaForm}
+              data={formData.crsFatcaForm || {}}
               onUpdate={(data) => updateFormData('crsFatcaForm', data)}
               onNext={nextStep}
               onPrev={prevStep}
@@ -221,11 +252,41 @@ export default function SignupWizard() {
             />
           )
         }
-      case 4:
+      case 5:
+        return (
+          <TermsAndConditions
+            data={formData.termsAndConditions || {}}
+            onUpdate={(data) => updateFormData('termsAndConditions', data)}
+            onNext={nextStep}
+            onPrev={prevStep}
+            currentStep={currentStep}
+          />
+        )
+      case 6:
+        return (
+          <KeyIndividuals
+            data={formData.keyIndividuals || {}}
+            onUpdate={(data) => updateFormData('keyIndividuals', data)}
+            onNext={nextStep}
+            onPrev={prevStep}
+            currentStep={currentStep}
+          />
+        )
+      case 7:
+        return (
+          <DocumentUpload
+            data={formData.documentUpload || {}}
+            onUpdate={(data) => updateFormData('documentUpload', data)}
+            onNext={nextStep}
+            onPrev={prevStep}
+            currentStep={currentStep}
+          />
+        )
+      case 8:
         return (
           <EDeliveryStep
-            eDeliveryData={formData.eDeliveryConsent}
-            portalData={formData.portalAccess}
+            eDeliveryData={formData.eDeliveryConsent || {}}
+            portalData={formData.portalAccess || {}}
             onUpdateEDelivery={(data) => updateFormData('eDeliveryConsent', data)}
             onUpdatePortal={(data) => updateFormData('portalAccess', data)}
             onNext={nextStep}
@@ -233,31 +294,22 @@ export default function SignupWizard() {
             currentStep={currentStep}
           />
         )
-      case 5:
+      case 9:
         return (
-          <div className="review-step">
+          <div className="text-center">
             <h2>Review & Consent</h2>
-            <p>Final review and submission functionality coming soon...</p>
-            <div className="form-summary">
-              <h3>Form Data Summary</h3>
-              <details>
-                <summary>View collected information</summary>
-                <pre style={{ fontSize: '0.8rem', background: '#f9f9f9', padding: '1rem' }}>
-                  {JSON.stringify(formData, null, 2)}
-                </pre>
-              </details>
-            </div>
-            <div className="step-navigation">
+            <p>Coming soon - Final review and submission step</p>
+            <div className="inline">
               <button 
                 type="button" 
                 onClick={prevStep}
-                className="btn-secondary"
+                className="btn secondary"
               >
-                Previous
+                ← Previous
               </button>
               <button 
                 type="button" 
-                className="btn-primary"
+                className="btn primary"
                 disabled
               >
                 Submit (Coming Soon)
@@ -309,11 +361,13 @@ export default function SignupWizard() {
               }`}
               data-step={step.id}
               role="button"
-              tabIndex={isCompleted || step.id < currentStep ? 0 : -1}
+              tabIndex={0}
               aria-current={isActive ? 'step' : undefined}
               aria-label={`${step.title} - ${
                 isCompleted ? 'Completed' : isActive ? 'Current' : 'Pending'
               }`}
+              onClick={() => setCurrentStep(step.id)}
+              style={{ cursor: 'pointer' }}
             >
               <span className="step-number">{step.id}</span>
               <span className="step-title">{step.title}</span>
