@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { EDeliveryConsent } from '../../types/form'
+import { EDeliveryConsent, KeyIndividual } from '../../types/form'
 
 interface Props {
   data: EDeliveryConsent
@@ -17,7 +17,7 @@ export default function EDeliveryConsentForm({ data, onUpdate, onNext, onPrev, c
     onUpdate(formData)
   }, [formData])
 
-  const handleChange = (field: keyof EDeliveryConsent, value: string | boolean | string[]) => {
+  const handleChange = (field: keyof EDeliveryConsent, value: string | boolean | string[] | KeyIndividual[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -42,6 +42,29 @@ export default function EDeliveryConsentForm({ data, onUpdate, onNext, onPrev, c
     }
     
     handleChange('communicationPreferences', newPrefs)
+  }
+
+  const addKeyIndividual = () => {
+    const current = formData.keyIndividuals || []
+    handleChange('keyIndividuals', [...current, {
+      name: '',
+      title: '',
+      email: '',
+      consentToReceive: false
+    }])
+  }
+
+  const updateKeyIndividual = (index: number, field: keyof KeyIndividual, value: string | boolean) => {
+    const individuals = formData.keyIndividuals || []
+    const updated = [...individuals]
+    updated[index] = { ...updated[index], [field]: value }
+    handleChange('keyIndividuals', updated)
+  }
+
+  const removeKeyIndividual = (index: number) => {
+    const individuals = formData.keyIndividuals || []
+    const updated = individuals.filter((_, i) => i !== index)
+    handleChange('keyIndividuals', updated)
   }
 
   const validate = () => {
@@ -212,6 +235,110 @@ export default function EDeliveryConsentForm({ data, onUpdate, onNext, onPrev, c
             </p>
             {errors.systemRequirements && <div className="error show">You must confirm system requirements.</div>}
           </div>
+        </div>
+      </div>
+
+      {/* Key Individuals Section */}
+      <div className="col-12">
+        <div className="card">
+          <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Key Individuals for Document Receipt</h3>
+          <p className="muted" style={{ marginBottom: '16px' }}>
+            Designate key individuals within your organization who should receive electronic documents and communications.
+          </p>
+          
+          {(formData.keyIndividuals || []).map((individual, index) => (
+            <div key={index} style={{ 
+              border: '1px solid #e0e0e0', 
+              borderRadius: '8px', 
+              padding: '16px', 
+              marginBottom: '16px',
+              background: '#fafafa'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h4 style={{ margin: 0 }}>Key Individual #{index + 1}</h4>
+                <button 
+                  type="button" 
+                  onClick={() => removeKeyIndividual(index)}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    color: '#d32f2f', 
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+              
+              <div className="grid">
+                <div className="col-6">
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    value={individual.name}
+                    onChange={(e) => updateKeyIndividual(index, 'name', e.target.value)}
+                    placeholder="Enter full name"
+                  />
+                </div>
+                
+                <div className="col-6">
+                  <label>Title/Position</label>
+                  <input
+                    type="text"
+                    value={individual.title}
+                    onChange={(e) => updateKeyIndividual(index, 'title', e.target.value)}
+                    placeholder="e.g., Chief Financial Officer"
+                  />
+                </div>
+                
+                <div className="col-12">
+                  <label>Email Address</label>
+                  <input
+                    type="email"
+                    value={individual.email}
+                    onChange={(e) => updateKeyIndividual(index, 'email', e.target.value)}
+                    placeholder="Enter email address"
+                  />
+                </div>
+                
+                <div className="col-12">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
+                    <input
+                      type="checkbox"
+                      id={`consent_${index}`}
+                      checked={individual.consentToReceive}
+                      onChange={(e) => updateKeyIndividual(index, 'consentToReceive', e.target.checked)}
+                    />
+                    <label htmlFor={`consent_${index}`} style={{ fontWeight: 'bold' }}>
+                      This individual consents to receive electronic documents and communications
+                    </label>
+                  </div>
+                  <p className="muted" style={{ fontSize: '0.85rem', marginTop: '4px', paddingLeft: '24px' }}>
+                    By checking this box, you confirm that this individual has agreed to receive documents electronically 
+                    and has provided their consent for electronic delivery.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          <button 
+            type="button" 
+            onClick={addKeyIndividual}
+            style={{
+              background: '#f5f5f5',
+              border: '2px dashed #ccc',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              width: '100%',
+              cursor: 'pointer',
+              fontSize: '14px',
+              color: '#666'
+            }}
+          >
+            + Add Key Individual
+          </button>
         </div>
       </div>
 

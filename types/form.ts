@@ -42,6 +42,13 @@ export interface W9FormData {
   date?: string
 }
 
+export interface KeyIndividual {
+  name: string
+  title: string
+  email: string
+  consentToReceive: boolean
+}
+
 export interface EDeliveryConsent {
   consentToElectronic?: boolean
   emailAddress?: string
@@ -49,6 +56,7 @@ export interface EDeliveryConsent {
   languagePreference?: string
   optOutRights?: boolean
   systemRequirements?: boolean
+  keyIndividuals?: KeyIndividual[]
 }
 
 export interface PortalAccess {
