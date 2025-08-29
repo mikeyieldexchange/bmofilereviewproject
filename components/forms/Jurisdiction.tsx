@@ -7,12 +7,29 @@ interface Props {
     additionalTaxResidencies: TaxResidency[]
     fatcaStatus: string | null
     giin: string | null
+    // Enhanced jurisdiction fields
+    primaryTaxResidency?: TaxResidency
+    isUSPerson?: boolean
+    hasMultipleResidencies?: boolean
+    fatcaClassification?: string
+    crsReportable?: boolean
+    treatyBenefits?: string[]
+    taxExemptions?: string[]
+    specialCircumstances?: string
   }
   onUpdate: (data: {
     jurisdiction: string | null
     additionalTaxResidencies: TaxResidency[]
     fatcaStatus: string | null
     giin: string | null
+    primaryTaxResidency?: TaxResidency
+    isUSPerson?: boolean
+    hasMultipleResidencies?: boolean
+    fatcaClassification?: string
+    crsReportable?: boolean
+    treatyBenefits?: string[]
+    taxExemptions?: string[]
+    specialCircumstances?: string
   }) => void
   onNext: () => void
   onPrev: () => void
@@ -202,39 +219,180 @@ export default function Jurisdiction({ data, onUpdate, onNext, onPrev, currentSt
             
             {formData.additionalTaxResidencies.map((residency, index) => (
               <div key={index} className="grid" style={{ marginBottom: '16px' }}>
-                <div className="col-6">
-                  <label>Additional Country of Tax Residency</label>
-                  <select
-                    value={residency.country}
-                    onChange={(e) => updateTaxResidency(index, 'country', e.target.value)}
-                  >
-                    <option value="">Select...</option>
-                    <option value="AU">Australia</option>
-                    <option value="BR">Brazil</option>
-                    <option value="CA">Canada</option>
-                    <option value="CN">China</option>
-                    <option value="FR">France</option>
-                    <option value="DE">Germany</option>
-                    <option value="IN">India</option>
-                    <option value="IT">Italy</option>
-                    <option value="JP">Japan</option>
-                    <option value="MX">Mexico</option>
-                    <option value="NL">Netherlands</option>
-                    <option value="SG">Singapore</option>
-                    <option value="CH">Switzerland</option>
-                    <option value="GB">United Kingdom</option>
-                    <option value="US">United States</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-                <div className="col-6">
-                  <label>Tax Identification Number (TIN)</label>
-                  <input
-                    type="text"
-                    value={residency.tin}
-                    onChange={(e) => updateTaxResidency(index, 'tin', e.target.value)}
-                    placeholder="Enter TIN or reason if unavailable"
-                  />
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Tax Jurisdiction Selection</h3>
+                    
+                    <div className="space-y-3">
+                      <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="jurisdiction"
+                          value="CA"
+                          checked={formData.jurisdiction === 'CA'}
+                          onChange={(e) => handleJurisdictionChange(e.target.value)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                        />
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">Canada</div>
+                          <div className="text-sm text-gray-500">Canadian tax resident entity</div>
+                        </div>
+                      </label>
+                      
+                      <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="jurisdiction"
+                          value="US"
+                          checked={formData.jurisdiction === 'US'}
+                          onChange={(e) => handleJurisdictionChange(e.target.value)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                        />
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">United States</div>
+                          <div className="text-sm text-gray-500">US tax resident entity (requires W-9)</div>
+                        </div>
+                      </label>
+                      
+                      <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="jurisdiction"
+                          value="OTHER"
+                          checked={formData.jurisdiction === 'OTHER'}
+                          onChange={(e) => handleJurisdictionChange(e.target.value)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                        />
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">Other</div>
+                          <div className="text-sm text-gray-500">Non-US/Non-Canadian entity (requires CRS/FATCA)</div>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    {errors.jurisdiction && (
+                      <div className="mt-2 text-sm text-red-600">
+                        Please select your primary tax jurisdiction
+                      </div>
+                    )}
+                  </div>
+
+                  {/* US Person Classification */}
+                  {formData.jurisdiction && (
+                    <div>
+                      <h4 className="text-md font-medium text-gray-900 mb-3">US Person Classification</h4>
+                      <div className="space-y-2">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="isUSPerson"
+                            checked={formData.isUSPerson === true}
+                            onChange={() => setFormData(prev => ({ ...prev, isUSPerson: true }))}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">Yes, this entity is a US person</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="isUSPerson"
+                            checked={formData.isUSPerson === false}
+                            onChange={() => setFormData(prev => ({ ...prev, isUSPerson: false }))}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">No, this entity is not a US person</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Primary Tax Residency Details */}
+                  {formData.jurisdiction && (
+                    <div>
+                      <h4 className="text-md font-medium text-gray-900 mb-3">Primary Tax Residency</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="primaryCountry" className="block text-sm font-medium text-gray-700">
+                            Country of Tax Residency *
+                          </label>
+                          <select
+                            id="primaryCountry"
+                            value={formData.primaryTaxResidency?.country || ''}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              primaryTaxResidency: {
+                                ...prev.primaryTaxResidency,
+                                country: e.target.value,
+                                tin: prev.primaryTaxResidency?.tin || '',
+                                reasonNoTIN: prev.primaryTaxResidency?.reasonNoTIN || ''
+                              }
+                            }))}
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                          >
+                            <option value="">Select country</option>
+                            <option value="CA">Canada</option>
+                            <option value="US">United States</option>
+                            <option value="GB">United Kingdom</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="JP">Japan</option>
+                            <option value="AU">Australia</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="primaryTIN" className="block text-sm font-medium text-gray-700">
+                            Tax Identification Number
+                          </label>
+                          <input
+                            type="text"
+                            id="primaryTIN"
+                            value={formData.primaryTaxResidency?.tin || ''}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              primaryTaxResidency: {
+                                ...prev.primaryTaxResidency,
+                                country: prev.primaryTaxResidency?.country || '',
+                                tin: e.target.value,
+                                reasonNoTIN: prev.primaryTaxResidency?.reasonNoTIN || ''
+                              }
+                            }))}
+                            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        
+                        {!formData.primaryTaxResidency?.tin && (
+                          <div className="md:col-span-2">
+                            <label htmlFor="reasonNoTIN" className="block text-sm font-medium text-gray-700">
+                              Reason for no TIN (if applicable)
+                            </label>
+                            <select
+                              id="reasonNoTIN"
+                              value={formData.primaryTaxResidency?.reasonNoTIN || ''}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                primaryTaxResidency: {
+                                  ...prev.primaryTaxResidency,
+                                  country: prev.primaryTaxResidency?.country || '',
+                                  tin: prev.primaryTaxResidency?.tin || '',
+                                  reasonNoTIN: e.target.value
+                                }
+                              }))}
+                              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="">Select reason</option>
+                              <option value="not-required">TIN not required by jurisdiction</option>
+                              <option value="not-issued">TIN not issued by jurisdiction</option>
+                              <option value="applied-for">Applied for but not yet received</option>
+                              <option value="other">Other</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

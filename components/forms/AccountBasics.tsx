@@ -17,7 +17,7 @@ export default function AccountBasics({ data, onUpdate, onNext, onPrev, currentS
     onUpdate(formData)
   }, [formData])
 
-  const handleChange = (field: keyof BasicInfo, value: string) => {
+  const handleChange = (field: keyof BasicInfo, value: string | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -36,14 +36,15 @@ export default function AccountBasics({ data, onUpdate, onNext, onPrev, currentS
     const requiredFields = [
       'entityName', 'entityType', 'incorporationDate',
       'contactFirstName', 'contactLastName', 'contactTitle', 'contactEmail', 'contactPhone',
-      'address1', 'city', 'state', 'postalCode', 'country'
+      'address1', 'city', 'state', 'postalCode', 'country', 'language'
     ]
     
     const newErrors: Record<string, boolean> = {}
     let isValid = true
 
     requiredFields.forEach(field => {
-      if (!formData[field as keyof BasicInfo]?.trim()) {
+      const value = formData[field as keyof BasicInfo]
+      if (!value || (typeof value === 'string' && !value.trim())) {
         newErrors[field] = true
         isValid = false
       }
@@ -140,6 +141,147 @@ export default function AccountBasics({ data, onUpdate, onNext, onPrev, currentS
 
       <div className="col-12">
         <div className="card">
+          <h3 style={{ marginTop: 0, marginBottom: '12px' }}>Business Information</h3>
+          <div className="grid">
+            <div className="col-12">
+              <div>
+                <label htmlFor="incorporationProvince" className="block text-sm font-medium text-gray-700">
+                  Province/State of Incorporation *
+                </label>
+                <input
+                  type="text"
+                  id="incorporationProvince"
+                  value={formData.incorporationProvince || ''}
+                  onChange={(e) => handleChange('incorporationProvince', e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="incorporationNumber" className="block text-sm font-medium text-gray-700">
+                  Incorporation Number
+                </label>
+                <input
+                  type="text"
+                  id="incorporationNumber"
+                  value={formData.incorporationNumber || ''}
+                  onChange={(e) => handleChange('incorporationNumber', e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="craBusinessNumber" className="block text-sm font-medium text-gray-700">
+                  CRA Business Number
+                </label>
+                <input
+                  type="text"
+                  id="craBusinessNumber"
+                  value={formData.craBusinessNumber || ''}
+                  onChange={(e) => handleChange('craBusinessNumber', e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="123456789RP0001"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="industry" className="block text-sm font-medium text-gray-700">
+                  Industry *
+                </label>
+                <select
+                  id="industry"
+                  value={formData.industry || ''}
+                  onChange={(e) => handleChange('industry', e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select industry</option>
+                  <option value="financial-services">Financial Services</option>
+                  <option value="technology">Technology</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="retail">Retail</option>
+                  <option value="real-estate">Real Estate</option>
+                  <option value="energy">Energy</option>
+                  <option value="agriculture">Agriculture</option>
+                  <option value="education">Education</option>
+                  <option value="government">Government</option>
+                  <option value="non-profit">Non-Profit</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              
+              <div>
+                <label htmlFor="website" className="block text-sm font-medium text-gray-700">
+                  Company Website
+                </label>
+                <input
+                  type="url"
+                  id="website"
+                  value={formData.website || ''}
+                  onChange={(e) => handleChange('website', e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="https://www.example.com"
+                />
+              </div>
+            </div>
+            
+            <div className="col-12">
+              <label htmlFor="intendedUseOfAccount" className="block text-sm font-medium text-gray-700">
+                Intended Use of Account *
+              </label>
+              <div className="mt-2 space-y-2">
+                {[
+                  'Investment Management',
+                  'Treasury Operations',
+                  'Trade Finance',
+                  'Foreign Exchange',
+                  'Cash Management',
+                  'Payroll Processing',
+                  'Vendor Payments',
+                  'Customer Collections',
+                  'Other'
+                ].map((use) => (
+                  <label key={use} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.intendedUseOfAccount?.includes(use) || false}
+                      onChange={(e) => {
+                        const currentUses = formData.intendedUseOfAccount || []
+                        if (e.target.checked) {
+                          handleChange('intendedUseOfAccount', [...currentUses, use])
+                        } else {
+                          handleChange('intendedUseOfAccount', currentUses.filter(u => u !== use))
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">{use}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            
+            <div className="col-12">
+              <label htmlFor="companyDescription" className="block text-sm font-medium text-gray-700">
+                Company Description
+              </label>
+              <textarea
+                id="companyDescription"
+                rows={3}
+                value={formData.companyDescription || ''}
+                onChange={(e) => handleChange('companyDescription', e.target.value)}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Brief description of your business activities..."
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="col-12">
+        <div className="card">
           <h3 style={{ marginTop: 0, marginBottom: '12px' }}>Primary Contact Information</h3>
           <div className="grid">
             <div className="col-6">
@@ -203,6 +345,36 @@ export default function AccountBasics({ data, onUpdate, onNext, onPrev, currentS
             </div>
             
             <div className="col-6">
+              <label htmlFor="contactTimezone">Timezone</label>
+              <select
+                id="contactTimezone"
+                value={formData.contactTimezone || ''}
+                onChange={(e) => handleChange('contactTimezone', e.target.value)}
+              >
+                <option value="">Select timezone</option>
+                <option value="America/Toronto">Eastern Time (Toronto)</option>
+                <option value="America/Winnipeg">Central Time (Winnipeg)</option>
+                <option value="America/Edmonton">Mountain Time (Edmonton)</option>
+                <option value="America/Vancouver">Pacific Time (Vancouver)</option>
+                <option value="America/New_York">Eastern Time (New York)</option>
+                <option value="America/Chicago">Central Time (Chicago)</option>
+                <option value="America/Denver">Mountain Time (Denver)</option>
+                <option value="America/Los_Angeles">Pacific Time (Los Angeles)</option>
+              </select>
+            </div>
+            
+            <div className="col-6">
+              <label htmlFor="contactLinkedIn">LinkedIn Profile (optional)</label>
+              <input
+                id="contactLinkedIn"
+                type="url"
+                value={formData.contactLinkedIn || ''}
+                onChange={(e) => handleChange('contactLinkedIn', e.target.value)}
+                placeholder="https://linkedin.com/in/username"
+              />
+            </div>
+            
+            <div className="col-6">
               <label htmlFor="language">Language Preference</label>
               <select
                 id="language"
@@ -214,6 +386,111 @@ export default function AccountBasics({ data, onUpdate, onNext, onPrev, currentS
               </select>
               <p className="footnote">Language preference will be applied to eDelivery notifications.</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="col-12">
+        <div className="card">
+          <h3 style={{ marginTop: 0, marginBottom: '12px' }}>Mailing Address</h3>
+          <div className="grid">
+            <div className="col-12">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.useSameMailingAddress || false}
+                  onChange={(e) => {
+                    handleChange('useSameMailingAddress', e.target.checked ? 'true' : 'false')
+                    if (e.target.checked) {
+                      // Copy business address to mailing address
+                      handleChange('mailingAddress1', formData.address1 || '')
+                      handleChange('mailingAddress2', formData.address2 || '')
+                      handleChange('mailingCity', formData.city || '')
+                      handleChange('mailingState', formData.state || '')
+                      handleChange('mailingPostalCode', formData.postalCode || '')
+                      handleChange('mailingCountry', formData.country || '')
+                    }
+                  }}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm text-gray-700">Use same as business address</span>
+              </label>
+            </div>
+            
+            {!formData.useSameMailingAddress && (
+              <>
+                <div className="col-12">
+                  <label htmlFor="mailingAddress1">Mailing Address Line 1</label>
+                  <input
+                    id="mailingAddress1"
+                    type="text"
+                    value={formData.mailingAddress1 || ''}
+                    onChange={(e) => handleChange('mailingAddress1', e.target.value)}
+                    placeholder="Street address, P.O. box, company name"
+                  />
+                </div>
+                
+                <div className="col-12">
+                  <label htmlFor="mailingAddress2">Mailing Address Line 2</label>
+                  <input
+                    id="mailingAddress2"
+                    type="text"
+                    value={formData.mailingAddress2 || ''}
+                    onChange={(e) => handleChange('mailingAddress2', e.target.value)}
+                    placeholder="Apartment, suite, unit, building, floor, etc."
+                  />
+                </div>
+                
+                <div className="col-4">
+                  <label htmlFor="mailingCity">City</label>
+                  <input
+                    id="mailingCity"
+                    type="text"
+                    value={formData.mailingCity || ''}
+                    onChange={(e) => handleChange('mailingCity', e.target.value)}
+                  />
+                </div>
+                
+                <div className="col-4">
+                  <label htmlFor="mailingState">Province/State</label>
+                  <input
+                    id="mailingState"
+                    type="text"
+                    value={formData.mailingState || ''}
+                    onChange={(e) => handleChange('mailingState', e.target.value)}
+                  />
+                </div>
+                
+                <div className="col-4">
+                  <label htmlFor="mailingPostalCode">Postal/ZIP Code</label>
+                  <input
+                    id="mailingPostalCode"
+                    type="text"
+                    value={formData.mailingPostalCode || ''}
+                    onChange={(e) => handleChange('mailingPostalCode', e.target.value)}
+                  />
+                </div>
+                
+                <div className="col-12">
+                  <label htmlFor="mailingCountry">Country</label>
+                  <select
+                    id="mailingCountry"
+                    value={formData.mailingCountry || ''}
+                    onChange={(e) => handleChange('mailingCountry', e.target.value)}
+                  >
+                    <option value="">Select country</option>
+                    <option value="CA">Canada</option>
+                    <option value="US">United States</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="AU">Australia</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                    <option value="JP">Japan</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
